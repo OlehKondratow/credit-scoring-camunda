@@ -71,7 +71,7 @@ Integracja z bankiem: zmienne procesu ustawiane z backendu (REST/Zeebe/Zeebe use
 | `c8jw-credit-score` | `worker/scoring.py` | ML inference |
 | `c8jw-credit-route` | `worker/route.py` | Routing progowy (alternatywa dla DMN w `credit-score-pipeline.bpmn`) |
 
-**Jeden proces OS:** `worker/run_worker.py` — wybór handlerów przez `WORKERS` (przecinek).
+**Jeden proces OS:** `python -m worker.run_worker` — wybór handlerów przez `WORKERS` (przecinek).
 
 Mapowanie BPMN → job types: **WORKERS.md**.
 

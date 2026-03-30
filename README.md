@@ -22,7 +22,8 @@ Samodzielny projekt (historycznie wyodrębniony z [camunda8-tutorial](https://gi
 12. [Wdrożenie: lokalnie, Docker, GKE](#12-wdrożenie-lokalnie-docker-gke)  
 13. [Indeks dokumentacji szczegółowej](#13-indeks-dokumentacji-szczegółowej)  
 14. [Struktura katalogów (skrót)](#14-struktura-katalogów-skrót)  
-15. [Repozytorium nadrzędne](#15-repozytorium-nadrzędne)
+15. [Jakość kodu (CI / dev)](#15-jakość-kodu-ci--dev)  
+16. [Repozytorium nadrzędne i Git](#16-repozytorium-nadrzędne-i-git)
 
 ---
 
@@ -30,7 +31,7 @@ Samodzielny projekt (historycznie wyodrębniony z [camunda8-tutorial](https://gi
 
 **Cel:** pokazać end-to-end **scoring kredytowy** z perspektywy Camunda 8: dane wejściowe → walidacja (opcjonalnie) → **model ML** (wyłącznie inference w runtime) → reguły **DMN** lub **worker routingu** → wynik w zmiennych procesu / formularzu.
 
-**Poza zakresem:** produkcyjna integracja z zewnętrznymi źródłami informacji kredytowej, produkcyjny Keycloak/Helm pod pełną platformę Camunda (wskazówki w dokumentacji dodatkowej), workery Go z katalogu nadrzędnego (ten folder używa wyłącznie Pythona z `requirements.txt`).
+**Poza zakresem:** produkcyjna integracja z zewnętrznymi źródłami informacji kredytowej, produkcyjny Keycloak/Helm pod pełną platformę Camunda (wskazówki w dokumentacji dodatkowej), workery Go z katalogu nadrzędnego (ten folder używa wyłącznie Pythona — `pyproject.toml` / `requirements.txt`).
 
 ---
 
@@ -39,7 +40,7 @@ Samodzielny projekt (historycznie wyodrębniony z [camunda8-tutorial](https://gi
 ```bash
 cd /data/projects/credit-scoring-camunda   # lub ścieżka po klonowaniu tego katalogu
 python3 -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+pip install -e .                                 # runtime; dev: pip install -e ".[dev]"
 
 # Artefakt modelu (syntetyczne dane — bez train.csv)
 python training/train.py --demo
@@ -48,12 +49,13 @@ python training/train.py --demo
 # python training/train.py --data data/train.csv
 
 export ZEEBE_ADDRESS=127.0.0.1:26500
-python worker/run_worker.py
+python -m worker.run_worker
 ```
 
 - Domyślnie **`WORKERS`** obejmuje **wszystkie trzy** typy: `c8jw-credit-validate`, `c8jw-credit-score`, `c8jw-credit-route`.  
-- Sam scoring (jeden BPMN): `WORKERS=c8jw-credit-score python worker/run_worker.py`  
-- Pełny Modeler (forma + DMN, **bez** route workera): `WORKERS=c8jw-credit-validate,c8jw-credit-score python worker/run_worker.py`
+- Sam scoring (jeden BPMN): `WORKERS=c8jw-credit-score python -m worker.run_worker`  
+- Pełny Modeler (forma + DMN, **bez** route workera): `WORKERS=c8jw-credit-validate,c8jw-credit-score python -m worker.run_worker`
+- Obraz Docker uruchamia komendę `credit-score-worker` (entrypoint z `pyproject.toml`).
 
 Wdrożenie zasobów Camundy: BPMN (+ ewentualnie formularze JSON, DMN) — Modeler lub CI; **kolejność** przy `bindingType latest` dla DMN opisano w [MODELER.md](MODELER.md).
 
@@ -145,7 +147,7 @@ Opcjonalnie: `client_id` (ignorowane przy macierzy cech, jeśli obecne).
 
 ## 6. Job workery (typy zadań)
 
-Jeden proces OS: **`worker/run_worker.py`**. Rejestracja typów przez **`WORKERS`** (lista po przecinku).
+Jeden proces OS: **`python -m worker.run_worker`**. Rejestracja typów przez **`WORKERS`** (lista po przecinku).
 
 | Job type | Moduł | Funkcja |
 |----------|--------|---------|
@@ -218,12 +220,12 @@ Mapowanie na źródła w runtime, nazewnictwo dataseta vs produkcja, krótkie za
 **Docker (worker):**
 
 ```bash
-# Z katalogu głównego tego projektu; wymaga models/credit_model.joblib (np. po training/train.py --demo)
+# Multi-stage build: demo model jest trenowany w etapie build (nie wymaga lokalnego joblib).
 docker build -t credit-score-worker -f Dockerfile .
 docker run -e ZEEBE_ADDRESS=host.docker.internal:26500 credit-score-worker
 ```
 
-Obraz kopiuje `worker/*.py` i model — przy aktualizacji modelu przebuduj obraz lub montuj wolumen / użyj initContainer w K8s.
+Produkcyjnie: podmień artefakt modelu (warstwa `COPY` / wolumen / initContainer) zamiast domyślnego demo z builda.
 
 **GKE:** `Deployment` workera, `ZEEBE_ADDRESS` wskazujący na Service bramki Zeebe w klastrze; Workload Identity; modele z GCS/PVC — **[ARCHITECTURE.md](ARCHITECTURE.md)**, **[ściąga GKE](https://github.com/OlehKondratow/camunda8-tutorial/blob/main/docs/gke-camunda-cheatsheet.md)**.
 
@@ -256,6 +258,7 @@ credit-scoring-camunda/
 ├── training/
 │   └── train.py
 ├── worker/
+│   ├── __init__.py
 │   ├── run_worker.py
 │   ├── scoring.py
 │   ├── validate.py
@@ -285,9 +288,15 @@ credit-scoring-camunda/
 
 ---
 
-## 15. Repozytorium nadrzędne i Git
+## 15. Jakość kodu (CI / dev)
 
-Folder **nie** zależy od workerów **Go** w `zeebe-tutorial/`. Zależności wyłącznie z **`requirements.txt`** (Python).
+- **GitHub Actions:** [`.github/workflows/ci.yml`](.github/workflows/ci.yml) — Python 3.11 i 3.12, Ruff, pytest z pokryciem `worker/`.
+- Lokalnie: `pip install -e ".[dev]"`, potem `make ci` (lub osobno `make lint`, `make test`). Zob. **[CONTRIBUTING.md](CONTRIBUTING.md)**.
+- Minimalny zestaw bez narzędzi dev: `pip install -r requirements.txt` (zgodny z `[project.dependencies]` w `pyproject.toml`).
+
+## 16. Repozytorium nadrzędne i Git
+
+Folder **nie** zależy od workerów **Go** w `zeebe-tutorial/`. Runtime: **Python** (`pyproject.toml` / `requirements.txt`).
 
 Szerszy kontekst szkoleniowy (Helm, GKE, inne BPMN): repozytorium [camunda8-tutorial](https://github.com/OlehKondratow/camunda8-tutorial).
 

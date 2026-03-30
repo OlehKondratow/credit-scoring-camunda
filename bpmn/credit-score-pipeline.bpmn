@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_credit_pipeline" targetNamespace="http://camunda8.tutorial/credit-scoring" exporter="camunda8-tutorial" exporterVersion="1.0.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.6.0">
   <bpmn:process id="c8jw_credit_score_pipeline" name="Credit scoring: validate → ML → route" isExecutable="true">
-    <bpmn:documentation>Trzy **job workers** (jeden proces Python: `worker/run_worker.py`): **c8jw-credit-validate** → brama **creditInputValid** → **c8jw-credit-score** → **c8jw-credit-route**.
+    <bpmn:documentation>Trzy **job workers** (jeden proces Python: `python -m worker.run_worker`): **c8jw-credit-validate** → brama **creditInputValid** → **c8jw-credit-score** → **c8jw-credit-route**.
 
 Wejście (jak CSV / `credit-score-process`): `app_date`, `education`, `sex`, `age`, `car`, `car_type`, `decline_app_cnt`, `good_work`, `score_bki`, `bki_request_cnt`, `region_rating`, `home_address`, `work_address`, `income`, `sna`, `first_time`, `foreign_passport`.
 

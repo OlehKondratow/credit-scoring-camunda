@@ -5,7 +5,7 @@
 
 **Wdrożenie:** najpierw oba pliki z `forms/`, potem `dmn/c8cs-post-ml-policy.dmn`, na końcu ten BPMN (`bindingType latest` przy DMN).
 
-**Worker:** `python worker/run_worker.py` z `WORKERS=c8jw-credit-validate,c8jw-credit-score` (bez `c8jw-credit-route` — routing jest w DMN).</bpmn:documentation>
+**Worker:** `python -m worker.run_worker` z `WORKERS=c8jw-credit-validate,c8jw-credit-score` (bez `c8jw-credit-route` — routing jest w DMN).</bpmn:documentation>
     <bpmn:startEvent id="Start_c8cs_full" name="Start">
       <bpmn:outgoing>Flow_f0</bpmn:outgoing>
     </bpmn:startEvent>

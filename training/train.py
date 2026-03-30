@@ -9,6 +9,7 @@ Usage:
 
 Output (default): models/credit_model.joblib
 """
+
 from __future__ import annotations
 
 import argparse

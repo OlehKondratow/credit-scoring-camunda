@@ -1,6 +1,6 @@
 # Lista workerów (job types) — `credit-scoring-camunda`
 
-Wszystkie handlery są w jednym procesie Python: **`worker/run_worker.py`** (`pyzeebe`).  
+Wszystkie handlery są w jednym procesie Python: **`python -m worker.run_worker`** (`pyzeebe`), z katalogu głównego repozytorium.  
 Wybór aktywnych typów: zmienna środowiskowa **`WORKERS`** (lista po przecinku). Domyślnie: wszystkie trzy.
 
 | Job type | Plik | Rola |
@@ -32,11 +32,11 @@ Wybór aktywnych typów: zmienna środowiskowa **`WORKERS`** (lista po przecinku
 
 ```bash
 # Pipeline techniczny (walidacja + ML + routing w workerze)
-python worker/run_worker.py
+python -m worker.run_worker
 
 # Tylko scoring (np. przy starcie BPMN `credit-score-process`)
-WORKERS=c8jw-credit-score python worker/run_worker.py
+WORKERS=c8jw-credit-score python -m worker.run_worker
 
 # Modeler: formularz + walidacja + ML + DMN (bez job type route)
-WORKERS=c8jw-credit-validate,c8jw-credit-score python worker/run_worker.py
+WORKERS=c8jw-credit-validate,c8jw-credit-score python -m worker.run_worker
 ```

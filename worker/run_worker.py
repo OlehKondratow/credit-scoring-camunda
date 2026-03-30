@@ -14,8 +14,9 @@ Environment:
 Legacy single worker only:
   WORKERS=c8jw-credit-score  — same behavior as earlier single-task BPMN
 
-Run from project root:  python worker/run_worker.py
+Run from project root:  python -m worker.run_worker
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -26,9 +27,9 @@ from pathlib import Path
 
 from pyzeebe import ZeebeWorker, create_insecure_channel
 
-from route import route_credit_decision
-from scoring import CreditScorer
-from validate import validate_credit_application
+from .route import route_credit_decision
+from .scoring import CreditScorer
+from .validate import validate_credit_application
 
 TASK_VALIDATE = "c8jw-credit-validate"
 TASK_SCORE = "c8jw-credit-score"
@@ -132,5 +133,10 @@ async def main() -> None:
     await worker.work()
 
 
-if __name__ == "__main__":
+def cli() -> None:
+    """Console entrypoint (setuptools scripts / docker CMD)."""
     asyncio.run(main())
+
+
+if __name__ == "__main__":
+    cli()

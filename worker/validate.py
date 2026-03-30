@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from scoring import REQUIRED_INPUT_KEYS
+from .scoring import REQUIRED_INPUT_KEYS
 
 
 def validate_credit_application(variables: dict[str, Any]) -> dict[str, Any]:

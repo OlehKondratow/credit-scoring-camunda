@@ -27,7 +27,7 @@ Uruchom workery ML (bez `c8jw-credit-route`, bo routing jest w DMN):
 ```bash
 export WORKERS=c8jw-credit-validate,c8jw-credit-score
 export ZEEBE_ADDRESS=127.0.0.1:26500
-python worker/run_worker.py
+python -m worker.run_worker
 ```
 
 Wymagany plik modelu: `models/credit_model.joblib` (`python training/train.py --demo`).
