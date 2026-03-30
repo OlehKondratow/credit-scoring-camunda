@@ -1,34 +1,27 @@
-# BIK a pola w tym projekcie
+# Pola `score_bki` i `bki_request_cnt` — mapowanie techniczne
 
-## Czym jest BIK w Polsce?
+Dokument dla **zespołu wdrożeniowego**: bez opisu rynku BIG — wyłącznie zgodność nazw w kodzie z modelem i szkoleniem.
 
-**BIK** (*Biuro Informacji Kredytowej*) to działające w Polsce **biuro informacji gospodarczej**, które przetwarza m.in. dane o zobowiązaniach i historii kredytowej (w uproszczeniu: „raport kredytowy” / zapytania do bazy informacji kredytowej).
+## Nazewnictwo w projekcie
 
-To **nie jest** to samo co skrót **BKI** użyty w nazwach pól importowanych z zestawu szkoleniowego (`score_bki`, `bki_request_cnt`) — tam chodzi o nazewnictwo z **zewnętrznego dataseta**, a nie o oficjalną skrótową formę „BIK”.
+Skrót **BKI** w nazwach **`score_bki`**, **`bki_request_cnt`** pochodzi z **zewnętrznego dataseta szkoleniowego** — to **nie** propozycja zmiany nazewnictwa produkcyjnego w integracjach z konkretnym dostawcą danych.
 
-## Mapowanie pól modelu → sens „jak z biura”
+| Zmienna w procesie / modelu | Rola w szkoleniu (uproszczenie) |
+|-----------------------------|----------------------------------|
+| `score_bki` | Skalar skoringowy w skali zbioru treningowego |
+| `bki_request_cnt` | Licznik zapytań w semantyce zbioru treningowego |
 
-W procesie i w modelu ML używane są zmienne odczytywane **z wniosku / systemów banku**, które w realnym wdrożeniu mogłyby pochodzić z **integracji z raportem lub scoringiem od BIK** (po stronie backendu), a nie od ręcznego wpisania przez klienta w całości.
+**Nie zmieniaj kluczy procesu** (`score_bki`, `bki_request_cnt`) bez **retreningu** i wdrożenia nowej wersji artefaktu `joblib`.
 
-| Zmienna w projekcie | Sens biznesowy (uproszczony) | Uwaga |
-|---------------------|------------------------------|--------|
-| `score_bki` | Jednowymiarowy scoring „z biura” z dataseta | W produkcji zastąpiłby go np. konkretny wskaźnik z dostawcy danych (format zależy od umowy i API). |
-| `bki_request_cnt` | Liczba zapytań / wpisów w oś czasu zapytań (w dataset: liczba) | Semantyka zbliżona do „ile razy w historii pojawiały się zapytania” — tylko w tym projekcie to **kolumna treningowa**, nie live BIK. |
+## Wdrożenie produkcyjne
 
-**Pola `score_bki` i `bki_request_cnt` muszą pozostać pod tymi nazwami** w kodzie i formularzu powiązanym z BPMN, żeby nie re-trenować modelu po samej zmianie etykiet.
+W systemie banku wartości tych pól zwykle ustawia **backend** po pobraniu danych z właściwych źródeł (integracje umowne, katalogi, mapowanie na kontrakt zmiennych procesu). Worker ML liczy wyłącznie na już dostarczonych zmiennych — **nie** zastępuje warstwy źródłowej.
 
 ## Dane w repozytorium
 
-- **Nie udostępniamy** prawdziwych danych z BIK ani nie symulujemy **oficjalnego** API BIK.
-- Plik `data/bik-synthetic-snapshot.example.json` to **fikcyjny przykład** struktury, jaką *mógłby* zwrócić wewnętrzny serwis po pobraniu informacji z biura (do dokumentacji i mocków).
-- Trening modelu nadal opiera się na `train.csv` / `--demo` zgodnie z `README.md`.
+- Brak prawdziwych danych z produkcyjnych systemów.
+- `data/bik-synthetic-snapshot.example.json` — **fikcyjny** szkielet do mocków i dokumentacji mapowania pól.
 
-## Aplikacja wewnątrz banku
+## Zastrzeżenie
 
-Jeśli proces działa **w infrastrukturze banku** (własna aplikacja kredytowa, istniejące umowy z BIK lub innym BIG, procedury zgód, DPIA, kontrolki dostępu), **przekazanie do Camundy zmiennych pochodzących z biura** — normalny wzorzec: backend pobiera raport / scoring, mapuje je na zmienne procesu (`score_bki`, `bki_request_cnt` lub przyszłe pola po retreningu), worker tylko liczy model na już „bankowych” danych.
-
-Ten projekt szkoleniowy **nie zastępuje** integracji ani compliance po stronie banku; chodzi wyłącznie o to, że **sam fakt orkiestracji wewnątrz banku** nie jest przeszkodą — o ile respektowane są umowy i polityki instytucji.
-
-## Zgodność prawna (skrót)
-
-Przetwarzanie danych z biur informacji gospodarczej (w tym BIK) podlega **ustawie o biurach informacji gospodarczej** oraz RODO. Wdrożenie produkcyjne wymaga podstawy prawnej, umów z BIK jako dostawcą danych i polityk bezpieczeństwa. Repozytorium to nie porada prawna — opisuje jedynie **szkoleniowy** szkielet techniczny.
+Przetwarzanie danych z biur informacji gospodarczej podlega ustawodawstwu (m.in. ustawa o BIG, RODO). Ten repozytorium to **szkielet techniczny do szkolenia**, nie analiza prawna ani projekt integracji produkcyjnej.

@@ -1,163 +1,163 @@
-# Техническое задание: банковский веб-портал (кастомный UI) + Camunda 8
+# Specyfikacja: bankowy portal webowy (własny UI) + Camunda 8
 
-**Версия документа:** 1.0  
-**Статус:** шаблон для адаптации под организацию  
-**Связанные материалы:** [camunda-external-web.md](camunda-external-web.md), [ARCHITECTURE.md](../ARCHITECTURE.md)
-
----
-
-## 1. Цель и область применения
-
-### 1.1. Цель
-
-Разработать **собственный веб-портал** (frontend + backend для браузера), обеспечивающий конечным пользователям банка (клиентам и/или сотрудникам фронт-офиса) работу с **кредитными заявками и связанными пользовательскими задачами**, оркестрируемыми **Camunda 8 (Zeebe)**, без обязательного использования UI **Tasklist** как основного интерфейса.
-
-Внешний вид, брендинг и UX **полностью определяются банком**.
-
-### 1.2. Границы системы (scope)
-
-| Входит | Не входит (out of scope) |
-|--------|----------------------------|
-| SPA (рекомендуется **React** или **Vue**), адаптивная вёрстка | Замена **Operate** для полноценного админ-мониторинга всех процессов (опционально отдельный эпик) |
-| **BFF** (Backend-for-Frontend) — единая точка входа API для браузера | Реализация **Identity / Keycloak** с нуля (используется существующий IdP) |
-| Вызовы к Camunda 8 через BFF (REST/gRPC по согласованной архитектуре) | Самохост **Zeebe** и Helm values (ответственность платформы) |
-| Сценарии: старт процесса, опрос состояния, отображение и отправка **user task** (формы), отображение результатов ML/DMN (read-only) | Обучение ML-моделей (отдельный конвейер) |
+**Wersja dokumentu:** 1.0  
+**Status:** szablon do dopasowania w organizacji  
+**Powiązane materiały:** [camunda-external-web.md](camunda-external-web.md), [ARCHITECTURE.md](../ARCHITECTURE.md)
 
 ---
 
-## 2. Роли и акторы
+## 1. Cel i zakres
 
-| Роль | Описание |
-|------|-----------|
-| **Клиент банка** | Подаёт заявку, заполняет анкету, видит статус/решение в рамках политики банка |
-| **Сотрудник (опционально)** | Обрабатывает задачи из процесса через тот же или отдельный раздел портала |
-| **Система Camunda 8** | Источник правды по процессу и задачам |
-| **BFF** | Агрегирует вызовы к Camunda и к внутренним API банка (БКИ, Клиентский профиль и т.д.) |
+### 1.1. Cel
+
+Opracować **własny portal webowy** (frontend + backend pod przeglądarkę), który umożliwia użytkownikom końcowym banku (klientom i/lub pracownikom front office) obsługę **wniosków kredytowych i powiązanych zadań użytkownika**, orkiestrowanych przez **Camunda 8 (Zeebe)**, bez konieczności traktowania UI **Tasklist** jako głównego interfejsu.
+
+Wygląd, branding i UX **w całości definiuje bank**.
+
+### 1.2. Granice systemu (scope)
+
+| W zakresie | Poza zakresem (out of scope) |
+|------------|------------------------------|
+| SPA (zalecane **React** lub **Vue**), responsywny layout | Zastąpienie **Operate** pełnym monitorem administracyjnym wszystkich procesów (opcjonalnie osobny epik) |
+| **BFF** (Backend-for-Frontend) — jeden punkt wejścia API dla przeglądarki | Implementacja **Identity / Keycloak** od zera (wykorzystywany jest istniejący IdP) |
+| Wywołania do Camunda 8 przez BFF (REST/gRPC wg uzgodnionej architektury) | Self-host **Zeebe** i wartości Helm (odpowiedzialność platformy) |
+| Scenariusze: start procesu, odpytanie o stan, prezentacja i wysyłka **user task** (formularze), prezentacja wyników ML/DMN (read-only) | Trening modeli ML (osobny potok) |
 
 ---
 
-## 3. Архитектура (логическая)
+## 2. Role i aktorzy
+
+| Rola | Opis |
+|------|------|
+| **Klient banku** | Składa wniosek, wypełnia ankietę, widzi status/decyzję w ramach polityki banku |
+| **Pracownik (opcjonalnie)** | Realizuje zadania z procesu w tym samym lub osobnym dziale portalu |
+| **System Camunda 8** | Jedno źródło prawdy dla procesu i zadań |
+| **BFF** | Agreguje wywołania do Camundy i do wewnętrznych API banku (źródła informacji kredytowej, profil klienta itd.) |
+
+---
+
+## 3. Architektura (logiczna)
 
 ```
-[Браузер] --(HTTPS + cookies/JWT)--> [BFF] --(mTLS/внутр. сеть)-->
-    |                                      |--> Zeebe Gateway (gRPC) / Zeebe REST (если доступен)
-    |                                      |--> Tasklist REST/GraphQL (если используется)
-    |                                      |--> Внутренние API банка (SQL, BIK, справочники)
-    +--> статика SPA (CDN / Ingress)
+[Przeglądarka] --(HTTPS + cookies/JWT)--> [BFF] --(mTLS/sieć wewn.)-->
+    |                                      |--> Zeebe Gateway (gRPC) / Zeebe REST (jeśli dostępny)
+    |                                      |--> Tasklist REST/GraphQL (jeśli używany)
+    |                                      |--> Wewnętrzne API banku (SQL, biura/źródła informacji kredytowej, słowniki)
+    +--> statyczne zasoby SPA (CDN / Ingress)
 ```
 
-**Требование:** браузер **не** вызывает напрямую Zeebe gRPC и **не** хранит сервисные учётные данные Camunda. Все секреты — на стороне BFF (Kubernetes Secret, Vault, Workload Identity).
+**Wymaganie:** przeglądarka **nie** wywołuje wprost Zeebe gRPC i **nie** przechowuje poświadczeń serwisowych Camundy. Sekrety wyłącznie po stronie BFF (Kubernetes Secret, Vault, Workload Identity).
 
 ---
 
-## 4. Функциональные требования
+## 4. Wymagania funkcjonalne
 
-### 4.1. Аутентификация и сессия
+### 4.1. Uwierzytelnianie i sesja
 
-- Вход пользователя через **корпоративный IdP** банка (рекомендуется **OIDC**, например Azure AD / Keycloak).
-- BFF обменивает код авторизации на токены, устанавливает **httpOnly, secure** сессию или передаёт **краткоживущий JWT** в заголовке (решение фиксируется в проектировании безопасности).
-- Сопоставление **subject IdP** ↔ **Camunda user id** / группы (если требуется для назначения user task) — через конфигурацию или сервис каталога.
+- Logowanie użytkownika przez **firmowy IdP** banku (zalecane **OIDC**, np. Azure AD / Keycloak).
+- BFF wymienia kod autoryzacji na tokeny, ustawia sesję **httpOnly, secure** albo przekazuje **krótkożyciowy JWT** w nagłówku (decyzja w projekcie bezpieczeństwa).
+- Mapowanie **subject IdP** ↔ **Camunda user id** / grupy (jeśli potrzebne do przypisania user task) — konfiguracja lub serwis katalogowy.
 
-### 4.2. Старт бизнес-процесса
+### 4.2. Start procesu biznesowego
 
-- Пользователь инициирует процесс (например, «кредитная заявка»): `processId` / `bpmnProcessId` согласно deployed BPMN.
-- BFF вызывает API старта процесса с **переменными процесса**, соответствующими контракту (см. `c8cs_applicant_input` / переменные в BPMN).
-- В ответ UI получает **ключ процесса** / `processInstanceKey` для опроса статуса.
+- Użytkownik inicjuje proces (np. „wniosek kredytowy”): `processId` / `bpmnProcessId` zgodnie z wdrożonym BPMN.
+- BFF wywołuje API startu procesu z **zmiennymi procesu** zgodnymi z kontraktem (por. `c8cs_applicant_input` / zmienne w BPMN).
+- W odpowiedzi UI otrzymuje **klucz procesu** / `processInstanceKey` do odpytywania o status.
 
-### 4.3. User tasks (задачи человеку)
+### 4.3. User tasks (zadania dla człowieka)
 
-- Отображение списка **открытых задач** текущего пользователя (фильтры: процесс, дата).
-- Карточка задачи: заголовок, срок, **данные формы** (схема из Camunda Form JSON или упрощённый контракт полей, согласованный с банком).
-- Действия: **complete** с телом переменных; при ошибке валидации — сообщение пользователю без нарушения состояния процесса.
+- Lista w **otwarte zadania** bieżącego użytkownika (filtry: proces, data).
+- Karta zadania: tytuł, termin, **dane formularza** (schemat z Camunda Form JSON lub uproszczony kontrakt pól, uzgodniony z bankiem).
+- Akcje: **complete** z treścią zmiennych; przy błędzie walidacji — komunikat dla użytkownika bez psucia stanu procesu.
 
-*Примечание:* реализация может опираться на **Tasklist API** или на собственные обёртки вокруг Zeebe — выбор фиксируется на этапе проектирования по версии Camunda 8 и лицензированию.
+*Uwaga:* implementacja może opierać się na **Tasklist API** lub własnych wrapperach wokół Zeebe — wybór na etapie projektu wg wersji Camunda 8 i licencjonowania.
 
-### 4.4. Отображение результатов
+### 4.4. Prezentacja wyników
 
-- После шагов ML/DMN UI отображает **read-only** поля: вероятность дефолта, флаги политики, текст решения (переменные процесса по контракту).
-- Источник данных: BFF читает переменные экземпляра процесса или отдельный «экран состояния» по `processInstanceKey`.
+- Po krokach ML/DMN UI pokazuje pola **read-only**: prawdopodobieństwo defaultu, flagi polityki, tekst decyzji (zmienne procesu wg kontraktu).
+- Źródło danych: BFF odczytuje zmienne instancji procesu lub osobny „ekran stanu” wg `processInstanceKey`.
 
-### 4.5. Ошибки и недоступность
+### 4.5. Błędy i niedostępność
 
-- Деградация: понятные сообщения при таймаутах BFF/Camunda.
-- Идемпотентность повторной отправки формы (где применимо) — по договорённости.
-
----
-
-## 5. Нефункциональные требования
-
-### 5.1. Безопасность
-
-- **TLS 1.2+** на внешнем периметре; HSTS при публичном домене.
-- OWASP ASVS / внутренние стандарты банка для XSS, CSRF (если cookie-сессия), injection.
-- Логи без ПДн и без секретов; маскирование полей в UI при аудите.
-- Доступ BFF к Camunda только из **доверенной сети** (GKE, Private Service Connect и т.п.).
-
-### 5.2. Производительность
-
-- Целевое время отклика типовых экранов (например, p95 &lt; 2 с при нормальной нагрузке) — уточняется заказчиком.
-- Кэширование справочников на BFF при необходимости.
-
-### 5.3. Доступность и эксплуатация
-
-- Health endpoints BFF для Kubernetes **liveness/readiness**.
-- Версионирование API BFF (`/v1/...`).
-- Соответствие политикам хранения логов и трассировки (OpenTelemetry — по желанию).
+- Degradacja: zrozumiałe komunikaty przy timeoutach BFF/Camunda.
+- Idempotentność ponownego wysłania formularza (gdzie ma zastosowanie) — do uzgodnienia.
 
 ---
 
-## 6. Интеграция с Camunda 8 (технические допущения)
+## 5. Wymagania niefunkcjonalne
 
-| Задача | Направление реализации (выбрать одно на этапе проектирования) |
-|--------|------------------------------------------------------------------|
-| Старт процесса | Zeebe client из BFF (gRPC) или поддерживаемый **REST** слой Camunda 8 для deploy/start (сверить с версией платформы) |
-| User task list / complete | **Tasklist REST/GraphQL** с токеном сервиса / пользователя (модель авторизации Camunda Identity) |
-| Чтение переменных | API Operate/Tasklist или Zeebe — по возможностям версии и политике безопасности |
+### 5.1. Bezpieczeństwo
 
-**Обязательно:** зафиксировать версию **Camunda 8.x** и опереться на официальную документацию API для этой версии.
+- **TLS 1.2+** na zewnętrznym obwodzie; HSTS przy publicznej domenie.
+- OWASP ASVS / standardy wewnętrzne banku dla XSS, CSRF (przy sesji cookie), injection.
+- Logi bez danych osobowych w rozumieniu wymogów audytu i bez sekretów; maskowanie pól w UI przy audycie.
+- Dostęp BFF do Camundy tylko z **zaufanej sieci** (GKE, Private Service Connect itp.).
 
----
+### 5.2. Wydajność
 
-## 7. UI/UX (высокий уровень)
+- Docelowy czas odpowiedzi typowych ekranów (np. p95 &lt; 2 s przy nominalnym obciążeniu) — doprecyzowanie u zamawiającego.
+- Cache słowników na BFF w razie potrzeby.
 
-- Дизайн-система банка (типографика, цвета, компоненты).
-- Мобильная ширина ≥ 360 гд (целевые breakpoints — в макетах).
-- Доступность: целевой уровень **WCAG 2.1 AA** (уточняется заказчиком).
-- Локализация: **RU/PL/EN** — перечень языков задаётся заказчиком.
+### 5.3. Dostępność i eksploatacja
 
-Детальные макеты — отдельное приложение к ТЗ (Figma и т.д.).
-
----
-
-## 8. Поставка и критерии приёмки
-
-### 8.1. Артефакты
-
-- Исходный код SPA и BFF в репозитории заказчика.
-- **Docker**-образы, **Helm chart** или манифесты **Kubernetes** для деплоя.
-- Документация: README, описание переменных окружения, схема потоков OAuth, контракты API BFF (OpenAPI).
-
-### 8.2. Критерии приёмки (пример)
-
-1. Пользователь проходит аутентификацию и видит экран старта заявки.
-2. Успешный старт процесса Camunda с валидным набором переменных; экземпляр виден в Operate (контрольная проверка).
-3. Выполнение user task через портал с корректным **complete** и обновлением переменных.
-4. Отображение итоговых полей после ML/DMN согласно BPMN этого репозитория или прикреплённому контракту.
-5. Прохождение **SAST/DAST** и проверок безопасности по регламенту банка (если применимо).
+- Endpointy health BFF dla Kubernetes **liveness/readiness**.
+- Wersjonowanie API BFF (`/v1/...`).
+- Zgodność z politykami retencji logów i śledzenia (OpenTelemetry — opcjonalnie).
 
 ---
 
-## 9. Риски и зависимости
+## 6. Integracja z Camunda 8 (założenia techniczne)
 
-- Изменения API между минорными версиями Camunda 8.
-- Модель прав: согласованность ролей IdP и назначения user task в BPMN.
-- Нагрузка: при высоком параллелизме — масштабирование BFF и лимиты Zeebe.
+| Zadanie | Kierunek implementacji (wybrać jeden na etapie projektu) |
+|---------|------------------------------------------------------------|
+| Start procesu | Klient Zeebe z BFF (gRPC) lub wspierana warstwa **REST** Camundy 8 dla deploy/start (zweryfikować względem wersji platformy) |
+| User task list / complete | **Tasklist REST/GraphQL** z tokenem serwisu / użytkownika (model autoryzacji Camunda Identity) |
+| Odczyt zmiennych | API Operate/Tasklist lub Zeebe — wg możliwości wersji i polityki bezpieczeństwa |
+
+**Obowiązkowo:** ustalić wersję **Camunda 8.x** i oprzeć się na oficjalnej dokumentacji API dla tej wersji.
 
 ---
 
-## 10. Приложения (к заполнению заказчиком)
+## 7. UI/UX (wysoki poziom)
 
-- Перечень **processId** и окружений (dev/stage/prod).
-- Ссылка на **OpenAPI** BFF.
-- Матрица ролей и разрешённых действий.
-- Схема потоков данных и ПДн (DPIA).
+- Design system banku (typografia, kolory, komponenty).
+- Szerokość mobilna ≥ 360 px (docelowe breakpointy — w makietach).
+- Dostępność: docelowy poziom **WCAG 2.1 AA** (doprecyzowanie u zamawiającego).
+- Lokalizacja: **PL/EN** (ew. inne) — zestaw języków ustala zamawiający.
+
+Szczegółowe makety — osobny załącznik do specyfikacji (Figma itd.).
+
+---
+
+## 8. Dostawa i kryteria akceptacji
+
+### 8.1. Artefakty
+
+- Kod źródłowy SPA i BFF w repozytorium zamawiającego.
+- Obrazy **Docker**, **Helm chart** lub manifesty **Kubernetes** pod wdrożenie.
+- Dokumentacja: README, opis zmiennych środowiska, schemat przepływu OAuth, kontrakty API BFF (OpenAPI).
+
+### 8.2. Kryteria akceptacji (przykład)
+
+1. Użytkownik przechodzi uwierzytelnianie i widzi ekran startu wniosku.
+2. Poprawny start procesu Camunda z prawidłowym zestawem zmiennych; instancja widoczna w Operate (kontrola).
+3. Wykonanie user task przez portal z poprawnym **complete** i aktualizacją zmiennych.
+4. Wyświetlenie pól końcowych po ML/DMN zgodnie z BPMN tego repozytorium lub dołączonym kontraktem.
+5. Przejście **SAST/DAST** i kontroli bezpieczeństwa wg regulaminu banku (jeśli ma zastosowanie).
+
+---
+
+## 9. Ryzyka i zależności
+
+- Zmiany API między wersjami minor Camundy 8.
+- Model uprawnień: spójność ról IdP i przypisań user task w BPMN.
+- Obciążenie: przy wysokim równoległym obciążeniu — skalowanie BFF i limity Zeebe.
+
+---
+
+## 10. Załączniki (do uzupełnienia przez zamawiającego)
+
+- Lista **processId** i środowisk (dev/stage/prod).
+- Link do **OpenAPI** BFF.
+- Macierz ról i dozwolonych akcji.
+- Schemat przepływów danych i DPIA.

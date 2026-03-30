@@ -1,7 +1,7 @@
 {
   "components": [
     {
-      "text": "# Wniosek kredytowy — dane kredytobiorcy\n\nFormat daty: `01FEB2014` (dzień + miesiąc EN + rok).\n\n**BIK (Polska):** w produkcji pola *score_bki* i *bki_request_cnt* zwykle pochodzą z backendu po pobraniu informacji kredytowej (np. przez integrację z biurem — w Polsce głównie **BIK**). Tu — jak w datascie szkoleniowym: nazwy zmiennych **`score_bki` / `bki_request_cnt`** są stałe dla modelu. Zob. `docs/bik-kontekst.md`.",
+      "text": "# Wniosek kredytowy — dane kredytobiorcy\n\nFormat daty: `01FEB2014` (dzień + miesiąc EN + rok).\n\nPola **`score_bki`** i **`bki_request_cnt`** — nazwy ze zbioru treningowego modelu; w wdrożeniu wartości ustawia zwykle **backend** z właściwych źródeł danych. Zmiana kluczy wymaga retreningu. Szczegóły: `docs/bik-kontekst.md`.",
       "type": "text",
       "layout": { "row": "Row_intro", "columns": null },
       "id": "Text_c8cs_intro"
@@ -84,7 +84,7 @@
       "description": "0 lub 1"
     },
     {
-      "label": "Scoring biura (score_bki) — jak z BIK w treningu",
+      "label": "score_bki (skoring — kontrakt modelu)",
       "type": "number",
       "layout": { "row": "Row_bki", "columns": null },
       "id": "Field_score_bki",
@@ -92,17 +92,17 @@
       "validate": { "required": true },
       "defaultValue": -1.5,
       "decimalDigits": 4,
-      "description": "Nazwa pola z dataseta; w PL często źródłem jest BIK (nie zmieniaj klucza score_bki)."
+      "description": "Klucz procesu musi pozostać score_bki (zgodność z modelem)."
     },
     {
-      "label": "Liczba zapytań do biura (bki_request_cnt)",
+      "label": "bki_request_cnt (liczba zapytań — kontrakt modelu)",
       "type": "number",
       "layout": { "row": "Row_bki_req", "columns": null },
       "id": "Field_bki_request_cnt",
       "key": "bki_request_cnt",
       "validate": { "required": true, "min": 0 },
       "defaultValue": 2,
-      "description": "Analogicznie: w praktyce dane jak z historii zapytań (np. BIK). Klucz bki_request_cnt bez zmian."
+      "description": "Klucz procesu musi pozostać bki_request_cnt (zgodność z modelem)."
     },
     {
       "label": "Rating regionu (region_rating)",

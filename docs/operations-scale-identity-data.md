@@ -38,7 +38,7 @@ Ten repozytorium **nie** zawiera Helm chartów Keycloak; użyj oficjalnych chart
 |---------|-----------------|
 | **Silnik Zeebe 8** | Stan runtime procesu jest w **logu strumieniowym/partycjach** brokerów — **nie** w „zewnętrznym Postgres dla silnika” w sensie Camundy 7. |
 | **Operate / Tasklist / Identity (self-managed)** | Często **Elasticsearch** do indeksów + komponenty mogą używać Postgres dla swojej konfiguracji/użytkowników (zależy od wersji i szablonu Helm). Sprawdź **oficjalny Helm Camunda 8** dla swojej wersji. |
-| **Aplikacja banku** | **Tak** — własny Postgres/Azure SQL: dane kredytowe, snapshoty z BIK po stronie backendu, powiązanie `businessKey` ↔ PK wniosku. Worker może wołać HTTP do serwisu, który czyta SQL — albo proces ustawia zmienne przed jobem. |
+| **Aplikacja banku** | **Tak** — własny Postgres/Azure SQL: dane kredytowe, snapshoty z systemów informacji kredytowej po stronie backendu, powiązanie `businessKey` ↔ PK wniosku. Worker może wołać HTTP do serwisu, który czyta SQL — albo proces ustawia zmienne przed jobem. |
 | **Keycloak** | Własna baza (Postgres) dla realmów i sesji. |
 
 **Wątek „zewnętrzny SQL”** = **domena banku + tożsamość**, a nie zamiennik storage Zeebe.

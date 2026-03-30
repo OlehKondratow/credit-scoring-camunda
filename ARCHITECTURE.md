@@ -59,7 +59,7 @@ Wersjonowanie: nowa wersja modelu = nowy plik / ścieżka `MODEL_PATH` (rejestr 
 | **Formularze** | `forms/*.form` — powiązane z user task (`formId`) |
 | **Silnik** | Zeebe — **job workers** po **gRPC** (`ZEEBE_ADDRESS` = host:port bramki) |
 
-Integracja z bankiem: zmienne procesu ustawiane z backendu (REST/Zeebe/Zeebe user tasks) albo z formularza Camundy; worker **nie** zastępuje systemu źródłowego danych z BIK — tylko liczy score na już dostarczonych polach.
+Integracja z bankiem: zmienne procesu ustawiane z backendu (REST/Zeebe/Zeebe user tasks) albo z formularza Camundy; worker **nie** zastępuje systemu źródłowego (np. pobrania informacji kredytowej) — tylko liczy score na już dostarczonych polach.
 
 ---
 

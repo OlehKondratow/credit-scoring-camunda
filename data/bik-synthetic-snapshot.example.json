@@ -1,5 +1,5 @@
 {
-  "_comment": "Przykład fikcyjny — NIE jest odpowiedzią API BIK. Służy tylko do dokumentacji / mocków integracji.",
+  "_comment": "Przykład fikcyjny — NIE jest produkcyjną odpowiedzią API. Służy tylko do dokumentacji / mocków integracji (mapowanie na score_bki, bki_request_cnt).",
   "source": "synthetic-tutorial-mock",
   "applicant_ref": "DEMO-2024-001",
   "inquiry_summary": {

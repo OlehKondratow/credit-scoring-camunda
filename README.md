@@ -2,7 +2,7 @@
 
 Samodzielny projekt (historycznie wyodrębniony z [camunda8-tutorial](https://github.com/OlehKondratow/camunda8-tutorial)): **regresja logistyczna** (przepis cech z [0leh-kondratov/credit-scoring](https://github.com/0leh-kondratov/credit-scoring)), **job workery Zeebe** (`pyzeebe`), **BPMN**, **DMN**, **formularze** Modeler, notatnik EDA/ML (PL), materiały o skali (**KEDA**, GKE, Kafka, Keycloak) i **portalu bankowym** (Ingress, BFF).
 
-**Krótko (RU):** учебный контур кредитного скоринга для Camunda 8: обучение → `joblib` → воркеры → примеры BPMN/DMN/форм; отдельные MD — архитектура, масштаб, веб, ТЗ на портал.
+**W skrócie:** kontur szkoleniowy scoringu kredytowego dla Camundy 8: trening → `joblib` → workery → przykłady BPMN/DMN/formularzy; osobne pliki MD — architektura, skala, warstwa web, specyfikacja portalu bankowego.
 
 ---
 
@@ -18,7 +18,7 @@ Samodzielny projekt (historycznie wyodrębniony z [camunda8-tutorial](https://gi
 8. [DMN](#8-dmn)  
 9. [Formularze Camunda 8](#9-formularze-camunda-8)  
 10. [Notatnik Jupyter i katalog `data/`](#10-notatnik-jupyter-i-katalog-data)  
-11. [BIK — kontekst polski](#11-bik--kontekst-polski)  
+11. [Kontrakt modelu: score_bki, bki_request_cnt](#11-kontrakt-modelu-score_bki-bki_request_cnt)  
 12. [Wdrożenie: lokalnie, Docker, GKE](#12-wdrożenie-lokalnie-docker-gke)  
 13. [Indeks dokumentacji szczegółowej](#13-indeks-dokumentacji-szczegółowej)  
 14. [Struktura katalogów (skrót)](#14-struktura-katalogów-skrót)  
@@ -30,7 +30,7 @@ Samodzielny projekt (historycznie wyodrębniony z [camunda8-tutorial](https://gi
 
 **Cel:** pokazać end-to-end **scoring kredytowy** z perspektywy Camunda 8: dane wejściowe → walidacja (opcjonalnie) → **model ML** (wyłącznie inference w runtime) → reguły **DMN** lub **worker routingu** → wynik w zmiennych procesu / formularzu.
 
-**Poza zakresem:** oficjalna integracja API BIK, produkcyjny Keycloak/Helm pod pełną platformę Camunda (wskazówki w dokumentacji dodatkowej), workery Go z katalogu nadrzędnego (ten folder używa wyłącznie Pythona z `requirements.txt`).
+**Poza zakresem:** produkcyjna integracja z zewnętrznymi źródłami informacji kredytowej, produkcyjny Keycloak/Helm pod pełną platformę Camunda (wskazówki w dokumentacji dodatkowej), workery Go z katalogu nadrzędnego (ten folder używa wyłącznie Pythona z `requirements.txt`).
 
 ---
 
@@ -185,7 +185,7 @@ Wejścia FEEL: `defaultProbability`, `predictedDefault` (z workera ML). Dostosow
 
 | `id` (formId) | Plik | Przeznaczenie |
 |----------------|------|----------------|
-| `c8cs_applicant_input` | `forms/c8cs_applicant_input.form` | Pola = kontrakt wejścia (klucze jak w §5.1); opisy odnoszą się do BIK w kontekście PL |
+| `c8cs_applicant_input` | `forms/c8cs_applicant_input.form` | Pola = kontrakt wejścia (klucze jak w §5.1); dopiski o score_bki / bki_request_cnt bez wskazywania dostawcy danych |
 | `c8cs_decision_output` | `forms/c8cs_decision_output.form` | Pola read-only: walidacja, ML, `creditPolicyDecision` |
 
 **Execution platform:** Camunda Cloud 8.6 (metadane w JSON); self-managed Tasklist zwykle akceptuje te same formularze przy zgodnej wersji.
@@ -198,16 +198,16 @@ Instrukcja wdrożenia pod Modeler: **[MODELER.md](MODELER.md)**.
 
 - **`notebooks/credit-scoring-eda-ml.ipynb`** — przetłumaczony (PL) notatnik z repozytorium źródłowego; ścieżka CSV: `../data/train.csv`.  
 - **`data/train.csv`** — nie commitowany (`.gitignore`); źródło: [credit-scoring/train.csv](https://github.com/0leh-kondratov/credit-scoring).  
-- **`data/bik-synthetic-snapshot.example.json`** — fikcyjny przykład mapowania pól „z biura”.  
+- **`data/bik-synthetic-snapshot.example.json`** — fikcyjny przykład mapowania pól ze źródła informacji kredytowej (zob. `data/README.md`).  
 - **`data/README.md`** — opis katalogu.
 
 ---
 
-## 11. BIK — kontekst polski
+## 11. Kontrakt modelu: score_bki, bki_request_cnt
 
-W Polsce biurem informacji kredytowej jest m.in. **BIK**; nazwy pól **`score_bki` / `bki_request_cnt`** pochodzą z dataseta szkoleniowego i **nie umownie zmianiaj bez retreningu modelu**.
+Nazwy **`score_bki`** i **`bki_request_cnt`** są **kontraktem** wobec zbioru treningowego i workera; zmiana kluczy w procesie bez retreningu lub warstwy mapującej psuje spójność inference.
 
-Szczegóły prawne, mapowanie, aplikacja wewnątrz banku: **[docs/bik-kontekst.md](docs/bik-kontekst.md)**.
+Mapowanie na źródła w runtime, nazewnictwo dataseta vs produkcja, krótkie zastrzeżenie prawne: **[docs/bik-kontekst.md](docs/bik-kontekst.md)**.
 
 ---
 
@@ -236,9 +236,9 @@ Obraz kopiuje `worker/*.py` i model — przy aktualizacji modelu przebuduj obraz
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Diagram warstw, ML vs runtime, Camunda, workerzy, GKE, Kafka, link do KEDA |
 | [WORKERS.md](WORKERS.md) | Tabela job types, BPMN ↔ worker, env, przykłady `WORKERS=…` |
 | [MODELER.md](MODELER.md) | Kolejność deploy form + DMN + BPMN pełnego procesu |
-| [docs/bik-kontekst.md](docs/bik-kontekst.md) | BIK, pola `score_bki`, zgodność, bank wewnętrzny |
+| [docs/bik-kontekst.md](docs/bik-kontekst.md) | Pola `score_bki` / `bki_request_cnt`, dataset vs runtime, zastrzeżenia |
 | [docs/camunda-external-web.md](docs/camunda-external-web.md) | Tasklist, Operate, Ingress, API Gateway, Zeebe gRPC |
-| [docs/tz-bank-portal-camunda.md](docs/tz-bank-portal-camunda.md) | ТЗ (RU): własny portal SPA + BFF + Camunda 8 |
+| [docs/tz-bank-portal-camunda.md](docs/tz-bank-portal-camunda.md) | Specyfikacja portalu bankowego: SPA + BFF + Camunda 8 |
 | [docs/operations-scale-identity-data.md](docs/operations-scale-identity-data.md) | Skala użytkowników i procesów, Keycloak/Azure, SQL, MLOps, data lake, **KEDA** |
 
 ---
