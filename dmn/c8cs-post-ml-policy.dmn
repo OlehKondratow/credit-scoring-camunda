@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/" xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_c8cs_policy" name="C8CS policy after ML" namespace="http://camunda8.tutorial/credit-scoring" exporter="camunda8-tutorial" exporterVersion="1.0.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.6.0">
+  <decision id="c8cs_credit_policy" name="Polityka po wyniku ML">
+    <description>Wejścia: defaultProbability, predictedDefault (0/1) z workera c8jw-credit-score. Dostosuj progi w FEEL pod ryzyko biznesowe.</description>
+    <variable id="Var_policy_out" name="creditPolicyDecision" typeRef="string" />
+    <literalExpression id="Lit_c8cs_policy">
+      <text>if predictedDefault = 1 and defaultProbability &gt;= 0.5 then "DECLINE_REVIEW" else if defaultProbability &gt;= 0.5 then "MANUAL_UNDERWRITING" else if defaultProbability &gt;= 0.25 then "STANDARD_REVIEW" else "AUTO_APPROVE"</text>
+    </literalExpression>
+  </decision>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram id="DMNDiagram_c8cs_policy">
+      <dmndi:DMNShape id="Shape_c8cs_policy" dmnElementRef="c8cs_credit_policy">
+        <dc:Bounds height="80" width="200" x="160" y="100" />
+      </dmndi:DMNShape>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</definitions>

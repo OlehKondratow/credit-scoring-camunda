@@ -1,0 +1,17 @@
+{
+  "_comment": "Przykład fikcyjny — NIE jest odpowiedzią API BIK. Służy tylko do dokumentacji / mocków integracji.",
+  "source": "synthetic-tutorial-mock",
+  "applicant_ref": "DEMO-2024-001",
+  "inquiry_summary": {
+    "inquiry_count_12m": 2,
+    "last_inquiry_date": null
+  },
+  "scores": {
+    "bureau_score_normalized": -1.42,
+    "notes_pl": "W projekcie mapuj to na zmienną procesu score_bki (format jak w train.csv)."
+  },
+  "process_variables_mapping": {
+    "score_bki": "<scores.bureau_score_normalized lub ekwiwalent z umowy z dostawcą>",
+    "bki_request_cnt": "<inquiry_summary.inquiry_count_12m lub pole uzgodnione z integracją>"
+  }
+}

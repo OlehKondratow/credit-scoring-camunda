@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_credit_pipeline" targetNamespace="http://camunda8.tutorial/credit-scoring" exporter="camunda8-tutorial" exporterVersion="1.0.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.6.0">
+  <bpmn:process id="c8jw_credit_score_pipeline" name="Credit scoring: validate → ML → route" isExecutable="true">
+    <bpmn:documentation>Trzy **job workers** (jeden proces Python: `worker/run_worker.py`): **c8jw-credit-validate** → brama **creditInputValid** → **c8jw-credit-score** → **c8jw-credit-route**.
+
+Wejście (jak CSV / `credit-score-process`): `app_date`, `education`, `sex`, `age`, `car`, `car_type`, `decline_app_cnt`, `good_work`, `score_bki`, `bki_request_cnt`, `region_rating`, `home_address`, `work_address`, `income`, `sna`, `first_time`, `foreign_passport`.
+
+Zmienne po drodze: **creditInputValid**, **creditValidationErrors**, **defaultProbability**, **predictedDefault**, **creditMlModelVersion**, **creditRiskBand**, **routingHint**, **reviewRequired**.</bpmn:documentation>
+    <bpmn:startEvent id="Start_pipeline" name="Start">
+      <bpmn:outgoing>Flow_p0</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_p0" sourceRef="Start_pipeline" targetRef="Task_validate" />
+    <bpmn:serviceTask id="Task_validate" name="Validate input (c8jw-credit-validate)">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="c8jw-credit-validate" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_p0</bpmn:incoming>
+      <bpmn:outgoing>Flow_p1</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_p1" sourceRef="Task_validate" targetRef="Gateway_valid" />
+    <bpmn:exclusiveGateway id="Gateway_valid" name="Poprawne dane?" default="Flow_p_reject">
+      <bpmn:incoming>Flow_p1</bpmn:incoming>
+      <bpmn:outgoing>Flow_p_ok</bpmn:outgoing>
+      <bpmn:outgoing>Flow_p_reject</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_p_ok" name="tak" sourceRef="Gateway_valid" targetRef="Task_score">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">= creditInputValid = true</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_p_reject" name="nie" sourceRef="Gateway_valid" targetRef="End_rejected" />
+    <bpmn:serviceTask id="Task_score" name="ML score (c8jw-credit-score)">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="c8jw-credit-score" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_p_ok</bpmn:incoming>
+      <bpmn:outgoing>Flow_p2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_p2" sourceRef="Task_score" targetRef="Task_route" />
+    <bpmn:serviceTask id="Task_route" name="Route (c8jw-credit-route)">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="c8jw-credit-route" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_p2</bpmn:incoming>
+      <bpmn:outgoing>Flow_p3</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_p3" sourceRef="Task_route" targetRef="End_ok" />
+    <bpmn:endEvent id="End_ok" name="Zakończono scoring">
+      <bpmn:incoming>Flow_p3</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_rejected" name="Odrzucono — błąd walidacji">
+      <bpmn:incoming>Flow_p_reject</bpmn:incoming>
+    </bpmn:endEvent>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_pipeline">
+    <bpmndi:BPMNPlane id="BPMNPlane_pipeline" bpmnElement="c8jw_credit_score_pipeline">
+      <bpmndi:BPMNShape id="Shape_p_start" bpmnElement="Start_pipeline">
+        <dc:Bounds x="132" y="232" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_p_val" bpmnElement="Task_validate">
+        <dc:Bounds x="220" y="210" width="150" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_p_gw" bpmnElement="Gateway_valid" isMarkerVisible="true">
+        <dc:Bounds x="425" y="225" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_p_score" bpmnElement="Task_score">
+        <dc:Bounds x="530" y="210" width="150" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_p_route" bpmnElement="Task_route">
+        <dc:Bounds x="735" y="210" width="150" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_p_endok" bpmnElement="End_ok">
+        <dc:Bounds x="945" y="232" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_p_endrej" bpmnElement="End_rejected">
+        <dc:Bounds x="418" y="352" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_p0" bpmnElement="Flow_p0">
+        <di:waypoint x="168" y="250" />
+        <di:waypoint x="220" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_p1" bpmnElement="Flow_p1">
+        <di:waypoint x="370" y="250" />
+        <di:waypoint x="425" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_p_ok" bpmnElement="Flow_p_ok">
+        <di:waypoint x="475" y="250" />
+        <di:waypoint x="530" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_p_rej" bpmnElement="Flow_p_reject">
+        <di:waypoint x="450" y="275" />
+        <di:waypoint x="450" y="352" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_p2" bpmnElement="Flow_p2">
+        <di:waypoint x="680" y="250" />
+        <di:waypoint x="735" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_p3" bpmnElement="Flow_p3">
+        <di:waypoint x="885" y="250" />
+        <di:waypoint x="945" y="250" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

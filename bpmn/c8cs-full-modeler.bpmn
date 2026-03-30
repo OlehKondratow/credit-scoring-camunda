@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_c8cs_full" targetNamespace="http://camunda8.tutorial/credit-scoring" exporter="camunda8-tutorial" exporterVersion="1.0.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.6.0">
+  <bpmn:process id="c8cs_full_orchestration" name="C8CS: formularz → walidacja → ML → DMN → wynik" isExecutable="true">
+    <bpmn:documentation>Pełny zestaw pod **Camunda Modeler**: formularz **`c8cs_applicant_input`**, workery **`c8jw-credit-validate`** i **`c8jw-credit-score`**, DMN **`c8cs_credit_policy`** → **`c8cs_decision_output`**.
+
+**Wdrożenie:** najpierw oba pliki z `forms/`, potem `dmn/c8cs-post-ml-policy.dmn`, na końcu ten BPMN (`bindingType latest` przy DMN).
+
+**Worker:** `python worker/run_worker.py` z `WORKERS=c8jw-credit-validate,c8jw-credit-score` (bez `c8jw-credit-route` — routing jest w DMN).</bpmn:documentation>
+    <bpmn:startEvent id="Start_c8cs_full" name="Start">
+      <bpmn:outgoing>Flow_f0</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_f0" sourceRef="Start_c8cs_full" targetRef="UserTask_c8cs_in" />
+    <bpmn:userTask id="UserTask_c8cs_in" name="Dane kredytobiorcy">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition formId="c8cs_applicant_input" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_f0</bpmn:incoming>
+      <bpmn:outgoing>Flow_f1</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_f1" sourceRef="UserTask_c8cs_in" targetRef="Task_c8cs_validate" />
+    <bpmn:serviceTask id="Task_c8cs_validate" name="Walidacja (c8jw-credit-validate)">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="c8jw-credit-validate" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_f1</bpmn:incoming>
+      <bpmn:outgoing>Flow_f2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_f2" sourceRef="Task_c8cs_validate" targetRef="Gateway_c8cs_valid" />
+    <bpmn:exclusiveGateway id="Gateway_c8cs_valid" name="Poprawne dane?" default="Flow_f_reject">
+      <bpmn:incoming>Flow_f2</bpmn:incoming>
+      <bpmn:outgoing>Flow_f_ok</bpmn:outgoing>
+      <bpmn:outgoing>Flow_f_reject</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_f_ok" name="tak" sourceRef="Gateway_c8cs_valid" targetRef="Task_c8cs_score">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">= creditInputValid = true</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_f_reject" name="nie" sourceRef="Gateway_c8cs_valid" targetRef="UserTask_c8cs_out_bad" />
+    <bpmn:userTask id="UserTask_c8cs_out_bad" name="Wynik — błąd walidacji">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition formId="c8cs_decision_output" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_f_reject</bpmn:incoming>
+      <bpmn:outgoing>Flow_f_end_bad</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_f_end_bad" sourceRef="UserTask_c8cs_out_bad" targetRef="End_c8cs_rejected" />
+    <bpmn:endEvent id="End_c8cs_rejected" name="Koniec — walidacja">
+      <bpmn:incoming>Flow_f_end_bad</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="Task_c8cs_score" name="ML scoring (c8jw-credit-score)">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="c8jw-credit-score" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_f_ok</bpmn:incoming>
+      <bpmn:outgoing>Flow_f3</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_f3" sourceRef="Task_c8cs_score" targetRef="Task_c8cs_dmn" />
+    <bpmn:businessRuleTask id="Task_c8cs_dmn" name="DMN: polityka po ML">
+      <bpmn:extensionElements>
+        <zeebe:calledDecision decisionId="c8cs_credit_policy" bindingType="latest" resultVariable="creditPolicyDecision" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_f3</bpmn:incoming>
+      <bpmn:outgoing>Flow_f4</bpmn:outgoing>
+    </bpmn:businessRuleTask>
+    <bpmn:sequenceFlow id="Flow_f4" sourceRef="Task_c8cs_dmn" targetRef="UserTask_c8cs_out" />
+    <bpmn:userTask id="UserTask_c8cs_out" name="Wynik — decyzja">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition formId="c8cs_decision_output" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_f4</bpmn:incoming>
+      <bpmn:outgoing>Flow_f5</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_f5" sourceRef="UserTask_c8cs_out" targetRef="End_c8cs_ok" />
+    <bpmn:endEvent id="End_c8cs_ok" name="Koniec — sukces">
+      <bpmn:incoming>Flow_f5</bpmn:incoming>
+    </bpmn:endEvent>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_c8cs_full">
+    <bpmndi:BPMNPlane id="BPMNPlane_c8cs_full" bpmnElement="c8cs_full_orchestration">
+      <bpmndi:BPMNShape id="Shape_f_start" bpmnElement="Start_c8cs_full">
+        <dc:Bounds x="122" y="222" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_f_in" bpmnElement="UserTask_c8cs_in">
+        <dc:Bounds x="200" y="200" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_f_val" bpmnElement="Task_c8cs_validate">
+        <dc:Bounds x="390" y="200" width="150" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_f_gw" bpmnElement="Gateway_c8cs_valid" isMarkerVisible="true">
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="572" y="198" width="85" height="14" />
+        </bpmndi:BPMNLabel>
+        <dc:Bounds x="585" y="215" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_f_score" bpmnElement="Task_c8cs_score">
+        <dc:Bounds x="690" y="120" width="150" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_f_dmn" bpmnElement="Task_c8cs_dmn">
+        <dc:Bounds x="880" y="120" width="150" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_f_out" bpmnElement="UserTask_c8cs_out">
+        <dc:Bounds x="1070" y="120" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_f_endok" bpmnElement="End_c8cs_ok">
+        <dc:Bounds x="1262" y="142" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_f_outbad" bpmnElement="UserTask_c8cs_out_bad">
+        <dc:Bounds x="690" y="290" width="160" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_f_endbad" bpmnElement="End_c8cs_rejected">
+        <dc:Bounds x="900" y="312" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_f0" bpmnElement="Flow_f0">
+        <di:waypoint x="158" y="240" />
+        <di:waypoint x="200" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f1" bpmnElement="Flow_f1">
+        <di:waypoint x="340" y="240" />
+        <di:waypoint x="390" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f2" bpmnElement="Flow_f2">
+        <di:waypoint x="540" y="240" />
+        <di:waypoint x="585" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f_ok" bpmnElement="Flow_f_ok">
+        <di:waypoint x="610" y="215" />
+        <di:waypoint x="610" y="160" />
+        <di:waypoint x="690" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f_rej" bpmnElement="Flow_f_reject">
+        <di:waypoint x="610" y="265" />
+        <di:waypoint x="610" y="330" />
+        <di:waypoint x="690" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f3" bpmnElement="Flow_f3">
+        <di:waypoint x="840" y="160" />
+        <di:waypoint x="880" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f4" bpmnElement="Flow_f4">
+        <di:waypoint x="1030" y="160" />
+        <di:waypoint x="1070" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f5" bpmnElement="Flow_f5">
+        <di:waypoint x="1210" y="160" />
+        <di:waypoint x="1262" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f_end_bad" bpmnElement="Flow_f_end_bad">
+        <di:waypoint x="850" y="330" />
+        <di:waypoint x="900" y="330" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -1,0 +1,179 @@
+{
+  "components": [
+    {
+      "text": "# Wniosek kredytowy — dane kredytobiorcy\n\nFormat daty: `01FEB2014` (dzień + miesiąc EN + rok).\n\n**BIK (Polska):** w produkcji pola *score_bki* i *bki_request_cnt* zwykle pochodzą z backendu po pobraniu informacji kredytowej (np. przez integrację z biurem — w Polsce głównie **BIK**). Tu — jak w datascie szkoleniowym: nazwy zmiennych **`score_bki` / `bki_request_cnt`** są stałe dla modelu. Zob. `docs/bik-kontekst.md`.",
+      "type": "text",
+      "layout": { "row": "Row_intro", "columns": null },
+      "id": "Text_c8cs_intro"
+    },
+    {
+      "label": "Data wniosku (app_date)",
+      "type": "textfield",
+      "layout": { "row": "Row_app_date", "columns": null },
+      "id": "Field_app_date",
+      "key": "app_date",
+      "validate": { "required": true },
+      "defaultValue": "01FEB2014"
+    },
+    {
+      "label": "Wykształcenie (education)",
+      "type": "textfield",
+      "layout": { "row": "Row_edu", "columns": null },
+      "id": "Field_education",
+      "key": "education",
+      "validate": { "required": true },
+      "defaultValue": "SCH",
+      "description": "SCH, GRD, UGR, PGR lub ACD"
+    },
+    {
+      "label": "Płeć (sex)",
+      "type": "textfield",
+      "layout": { "row": "Row_sex", "columns": null },
+      "id": "Field_sex",
+      "key": "sex",
+      "validate": { "required": true },
+      "defaultValue": "M",
+      "description": "M lub F"
+    },
+    {
+      "label": "Wiek (age)",
+      "type": "number",
+      "layout": { "row": "Row_age", "columns": null },
+      "id": "Field_age",
+      "key": "age",
+      "validate": { "required": true, "min": 18, "max": 100 },
+      "defaultValue": 45
+    },
+    {
+      "label": "Samochód (car)",
+      "type": "textfield",
+      "layout": { "row": "Row_car", "columns": null },
+      "id": "Field_car",
+      "key": "car",
+      "validate": { "required": true },
+      "defaultValue": "N",
+      "description": "Y lub N"
+    },
+    {
+      "label": "Typ samochodu (car_type)",
+      "type": "textfield",
+      "layout": { "row": "Row_car_type", "columns": null },
+      "id": "Field_car_type",
+      "key": "car_type",
+      "validate": { "required": true },
+      "defaultValue": "N",
+      "description": "Y lub N"
+    },
+    {
+      "label": "Liczba odrzuconych wniosków (decline_app_cnt)",
+      "type": "number",
+      "layout": { "row": "Row_decline", "columns": null },
+      "id": "Field_decline_app_cnt",
+      "key": "decline_app_cnt",
+      "validate": { "required": true, "min": 0 },
+      "defaultValue": 0
+    },
+    {
+      "label": "Dobre zatrudnienie (good_work)",
+      "type": "number",
+      "layout": { "row": "Row_gw", "columns": null },
+      "id": "Field_good_work",
+      "key": "good_work",
+      "validate": { "required": true, "min": 0, "max": 1 },
+      "defaultValue": 0,
+      "description": "0 lub 1"
+    },
+    {
+      "label": "Scoring biura (score_bki) — jak z BIK w treningu",
+      "type": "number",
+      "layout": { "row": "Row_bki", "columns": null },
+      "id": "Field_score_bki",
+      "key": "score_bki",
+      "validate": { "required": true },
+      "defaultValue": -1.5,
+      "decimalDigits": 4,
+      "description": "Nazwa pola z dataseta; w PL często źródłem jest BIK (nie zmieniaj klucza score_bki)."
+    },
+    {
+      "label": "Liczba zapytań do biura (bki_request_cnt)",
+      "type": "number",
+      "layout": { "row": "Row_bki_req", "columns": null },
+      "id": "Field_bki_request_cnt",
+      "key": "bki_request_cnt",
+      "validate": { "required": true, "min": 0 },
+      "defaultValue": 2,
+      "description": "Analogicznie: w praktyce dane jak z historii zapytań (np. BIK). Klucz bki_request_cnt bez zmian."
+    },
+    {
+      "label": "Rating regionu (region_rating)",
+      "type": "number",
+      "layout": { "row": "Row_region", "columns": null },
+      "id": "Field_region_rating",
+      "key": "region_rating",
+      "validate": { "required": true },
+      "defaultValue": 50
+    },
+    {
+      "label": "Adres zamieszkania (home_address)",
+      "type": "number",
+      "layout": { "row": "Row_home", "columns": null },
+      "id": "Field_home_address",
+      "key": "home_address",
+      "validate": { "required": true },
+      "defaultValue": 1
+    },
+    {
+      "label": "Adres pracy (work_address)",
+      "type": "number",
+      "layout": { "row": "Row_work", "columns": null },
+      "id": "Field_work_address",
+      "key": "work_address",
+      "validate": { "required": true },
+      "defaultValue": 2
+    },
+    {
+      "label": "Dochód (income)",
+      "type": "number",
+      "layout": { "row": "Row_income", "columns": null },
+      "id": "Field_income",
+      "key": "income",
+      "validate": { "required": true, "min": 0 },
+      "defaultValue": 25000
+    },
+    {
+      "label": "SNA (sna)",
+      "type": "number",
+      "layout": { "row": "Row_sna", "columns": null },
+      "id": "Field_sna",
+      "key": "sna",
+      "validate": { "required": true },
+      "defaultValue": 3
+    },
+    {
+      "label": "Pierwszy raz (first_time)",
+      "type": "number",
+      "layout": { "row": "Row_ft", "columns": null },
+      "id": "Field_first_time",
+      "key": "first_time",
+      "validate": { "required": true, "min": 0, "max": 1 },
+      "defaultValue": 1,
+      "description": "0 lub 1"
+    },
+    {
+      "label": "Paszport (foreign_passport)",
+      "type": "textfield",
+      "layout": { "row": "Row_fp", "columns": null },
+      "id": "Field_foreign_passport",
+      "key": "foreign_passport",
+      "validate": { "required": true },
+      "defaultValue": "N",
+      "description": "Y lub N"
+    }
+  ],
+  "type": "default",
+  "id": "c8cs_applicant_input",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.6.0",
+  "exporter": { "name": "camunda8-tutorial", "version": "1.0.0" },
+  "schemaVersion": 19
+}

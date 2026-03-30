@@ -1,0 +1,64 @@
+{
+  "components": [
+    {
+      "text": "# Wynik scoringu i polityki\n\nPola tylko do odczytu — wartości z ML i DMN.",
+      "type": "text",
+      "layout": { "row": "Row_h", "columns": null },
+      "id": "Text_out_h"
+    },
+    {
+      "label": "Walidacja OK (creditInputValid)",
+      "type": "checkbox",
+      "layout": { "row": "Row_valid", "columns": null },
+      "id": "Field_creditInputValid",
+      "key": "creditInputValid",
+      "disabled": true
+    },
+    {
+      "label": "Błędy walidacji (creditValidationErrors)",
+      "type": "textfield",
+      "layout": { "row": "Row_verr", "columns": null },
+      "id": "Field_creditValidationErrors",
+      "key": "creditValidationErrors",
+      "disabled": true
+    },
+    {
+      "label": "Prawdopodobieństwo default (defaultProbability)",
+      "type": "textfield",
+      "layout": { "row": "Row_dp", "columns": null },
+      "id": "Field_defaultProbability",
+      "key": "defaultProbability",
+      "disabled": true
+    },
+    {
+      "label": "Prognoza default (predictedDefault)",
+      "type": "textfield",
+      "layout": { "row": "Row_pd", "columns": null },
+      "id": "Field_predictedDefault",
+      "key": "predictedDefault",
+      "disabled": true
+    },
+    {
+      "label": "Wersja modelu (creditMlModelVersion)",
+      "type": "textfield",
+      "layout": { "row": "Row_ver", "columns": null },
+      "id": "Field_creditMlModelVersion",
+      "key": "creditMlModelVersion",
+      "disabled": true
+    },
+    {
+      "label": "Decyzja DMN — polityka (creditPolicyDecision)",
+      "type": "textfield",
+      "layout": { "row": "Row_dmn", "columns": null },
+      "id": "Field_creditPolicyDecision",
+      "key": "creditPolicyDecision",
+      "disabled": true
+    }
+  ],
+  "type": "default",
+  "id": "c8cs_decision_output",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.6.0",
+  "exporter": { "name": "camunda8-tutorial", "version": "1.0.0" },
+  "schemaVersion": 19
+}

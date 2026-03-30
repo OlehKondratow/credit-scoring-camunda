@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_credit_score" targetNamespace="http://camunda8.tutorial/credit-scoring" exporter="camunda8-tutorial" exporterVersion="1.0.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.6.0">
+  <bpmn:process id="c8jw_credit_score_process" name="Credit scoring: ML worker" isExecutable="true">
+    <bpmn:documentation>External worker **`c8jw-credit-score`** (`credit-scoring-camunda/worker/run_worker.py` z `WORKERS=c8jw-credit-score` lub tylko ten typ w domyślnej puli). Wieloetapowy proces: **`credit-score-pipeline.bpmn`**.  
+Start instance with **all** variables (snake_case, same as training CSV except `client_id` optional, no `default`):  
+`app_date` (e.g. `01FEB2014`), `education`, `sex`, `age`, `car`, `car_type`, `decline_app_cnt`, `good_work`, `score_bki`, `bki_request_cnt`, `region_rating`, `home_address`, `work_address`, `income`, `sna`, `first_time`, `foreign_passport`.  
+Outputs: **defaultProbability**, **predictedDefault**, **creditMlModelVersion**.</bpmn:documentation>
+    <bpmn:startEvent id="Start_credit" name="Start">
+      <bpmn:outgoing>Flow_cs_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_cs_1" sourceRef="Start_credit" targetRef="Task_credit_ml" />
+    <bpmn:serviceTask id="Task_credit_ml" name="ML score (c8jw-credit-score)">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="c8jw-credit-score" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_cs_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_cs_2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_cs_2" sourceRef="Task_credit_ml" targetRef="End_credit" />
+    <bpmn:endEvent id="End_credit" name="Done">
+      <bpmn:incoming>Flow_cs_2</bpmn:incoming>
+    </bpmn:endEvent>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_credit">
+    <bpmndi:BPMNPlane id="BPMNPlane_credit" bpmnElement="c8jw_credit_score_process">
+      <bpmndi:BPMNShape id="Shape_cs_start" bpmnElement="Start_credit">
+        <dc:Bounds x="152" y="122" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_cs_task" bpmnElement="Task_credit_ml">
+        <dc:Bounds x="250" y="100" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_cs_end" bpmnElement="End_credit">
+        <dc:Bounds x="462" y="122" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_cs_1" bpmnElement="Flow_cs_1">
+        <di:waypoint x="188" y="140" />
+        <di:waypoint x="250" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_cs_2" bpmnElement="Flow_cs_2">
+        <di:waypoint x="390" y="140" />
+        <di:waypoint x="462" y="140" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
