@@ -22,6 +22,8 @@ concurrency:
 jobs:
   preview:
     runs-on: ubuntu-latest
+    # Secrets live in GitHub Environment "GCP_WORKLOAD" (not repository secrets).
+    environment: GCP_WORKLOAD
     permissions:
       contents: read
       id-token: write
