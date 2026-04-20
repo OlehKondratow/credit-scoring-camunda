@@ -39,8 +39,9 @@ jobs:
 
       - uses: google-github-actions/setup-gcloud@v2
 
+      # Official install path (pulumi/setup-pulumi has no v3 tag — use actions repo).
       - name: Install Pulumi CLI
-        uses: pulumi/setup-pulumi@v3
+        uses: pulumi/actions@v5
         with:
           pulumi-version: "3.140.0"
 
