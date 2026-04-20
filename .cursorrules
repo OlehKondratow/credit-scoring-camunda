@@ -1,0 +1,8 @@
+# Credit-Scoring-V2 (Python / GCP / Camunda)
+
+- **Region:** default `europe-central2`; do not move workloads to non-EU regions without explicit intent.
+- **Stack:** FastAPI + LangGraph in `backend/`, PyZeebe in `worker/`, Streamlit in `ui/` — keep boundaries; no business logic only in UI.
+- **PII:** never log raw PESEL; mask before external LLM calls; align with `backend/app/services/pii.py`.
+- **Infra:** GKE is **Standard** (not Autopilot) for Camunda/Zeebe — primary IaC: **`infra/pulumi/`**; roles: `infra/ROLES.md`; legacy Terraform under `infra/terraform/`.
+- **Secrets:** use env / Kubernetes Secrets; never commit credentials.
+- Prefer small, focused changes; match existing style and English in code comments.

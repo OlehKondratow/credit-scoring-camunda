@@ -1,0 +1,9 @@
+project_id   = "my-camunda8-project"
+region       = "europe-central2"
+environment  = "prod"
+cluster_name = "millennium-credit-prod-gke"
+
+k8s_namespace = "millennium-credit"
+
+create_gke_cluster  = true
+deletion_protection = true

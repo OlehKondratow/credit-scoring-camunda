@@ -1,0 +1,6 @@
+name: credit-scoring-infra
+runtime:
+  name: python
+  options:
+    virtualenv: venv
+description: GCP infra sample (Pulumi) — alternative to infra/terraform

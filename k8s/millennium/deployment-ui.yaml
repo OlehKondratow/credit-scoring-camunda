@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: credit-ui
+  namespace: millennium-credit
+  labels:
+    app.kubernetes.io/name: credit-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: credit-ui
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: credit-ui
+    spec:
+      containers:
+        - name: ui
+          image: europe-central2-docker.pkg.dev/PROJECT_ID/millennium-credit-gke-docker/credit-ui:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8501
+          env:
+            - name: TASKLIST_USE_MOCK
+              value: "false"
+            - name: CAMUNDA_TASKLIST_BASE_URL
+              value: https://your-tasklist.example.com
+            - name: CAMUNDA_TASKLIST_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: millennium-env
+                  key: CAMUNDA_TASKLIST_TOKEN
+                  optional: true
+            - name: LOG_LEVEL
+              value: INFO
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: credit-ui
+  namespace: millennium-credit
+spec:
+  selector:
+    app.kubernetes.io/name: credit-ui
+  ports:
+    - port: 8501
+      targetPort: 8501

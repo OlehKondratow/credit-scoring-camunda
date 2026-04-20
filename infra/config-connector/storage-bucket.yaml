@@ -1,0 +1,10 @@
+# Config Connector — GCS bucket for embeddings (sample).
+# API: https://cloud.google.com/config-connector/docs/reference/storage/v1beta1/storagebucket
+apiVersion: storage.cnrm.cloud.google.com/v1beta1
+kind: StorageBucket
+metadata:
+  name: millennium-vector-emb-sample
+spec:
+  location: europe-central2
+  uniformBucketLevelAccess: true
+  publicAccessPrevention: inherited

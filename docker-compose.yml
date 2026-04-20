@@ -1,0 +1,53 @@
+# Local stack: Zeebe + backend + worker + Streamlit (no Camunda full platform).
+# Point Camunda SaaS or self-managed Tasklist to the same process models in production.
+
+services:
+  zeebe:
+    image: camunda/zeebe:8.6.0
+    ports:
+      - "26500:26500"
+    environment:
+      ZEEBE_BROKER_GATEWAY_NETWORK_HOST: 0.0.0.0
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      GOOGLE_CLOUD_REGION: europe-central2
+      GOOGLE_CLOUD_PROJECT: ${GOOGLE_CLOUD_PROJECT:-}
+      USE_MOCK_VECTOR_DB: "true"
+      USE_MOCK_LLM: "true"
+      LOG_LEVEL: INFO
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  worker:
+    build:
+      context: ./worker
+    environment:
+      ZEEBE_ADDRESS: zeebe:26500
+      BACKEND_URL: http://backend:8000
+      AI_TIMEOUT_S: "45"
+      LOG_LEVEL: INFO
+    depends_on:
+      zeebe:
+        condition: service_started
+      backend:
+        condition: service_healthy
+
+  ui:
+    build:
+      context: ./ui
+    environment:
+      TASKLIST_USE_MOCK: "true"
+      CAMUNDA_TASKLIST_BASE_URL: http://localhost:8082
+      LOG_LEVEL: INFO
+    ports:
+      - "8501:8501"
+    depends_on:
+      - backend

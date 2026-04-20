@@ -1,0 +1,15 @@
+# Pulumi
+pulumi/**/venv/
+pulumi/**/.venv/
+pulumi/**/.pulumi/
+pulumi/**/Pulumi.*.yaml
+!pulumi/**/Pulumi.*.yaml.example
+
+# CDKTF
+cdktf/node_modules/
+cdktf/cdktf.out/
+cdktf/.gen/
+
+# Local env
+.env
+.env.*

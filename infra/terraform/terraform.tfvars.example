@@ -1,0 +1,21 @@
+project_id = "my-camunda8-project"
+
+# Data residency: Warsaw (GCS + Artifact Registry + optional GKE)
+region = "europe-central2"
+
+# Isolation: dev | staging | prod (labels + operations). See ../ARCHITECTURE.md
+environment = "dev"
+
+# Optional per-developer sandbox label (pair with k8s_namespace millennium-credit-dev-YOU)
+# developer_id = ""
+
+cluster_name = "millennium-credit-gke"
+
+# k8s_namespace = "millennium-credit-dev"
+
+# Set false if you already run workloads on an existing cluster (e.g. camunda-stable) and do not want a second GKE.
+# create_gke_cluster = false
+
+# deletion_protection = false
+
+# More examples: envs/dev-shared.tfvars.example, envs/prod.tfvars.example

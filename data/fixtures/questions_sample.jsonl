@@ -1,0 +1,2 @@
+{"question": "Jakie są wymagania do kredytu hipotecznego według regulaminu?", "ground_truth_source": "regulamin_hipoteka.pdf", "product_type": "Hipoteka"}
+{"question": "Co bank bierze pod uwagę przy pożyczce gotówkowej?", "ground_truth_source": "regulamin_pozyczka.pdf", "product_type": "Pożyczka Gotówkowa"}

@@ -1,0 +1,23 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+*.tfvars
+!*.tfvars.example
+secret-env.yaml
+crash.log
+
+# CDKTF / Node
+node_modules/
+infra/cdktf/cdktf.out/
+infra/cdktf/.gen/
+
+# Pulumi
+infra/pulumi/venv/
+infra/pulumi/.venv/
+infra/pulumi/.pulumi/

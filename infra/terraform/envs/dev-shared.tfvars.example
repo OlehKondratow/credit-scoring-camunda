@@ -1,0 +1,10 @@
+project_id   = "my-camunda8-project"
+region       = "europe-central2"
+environment  = "dev"
+cluster_name = "millennium-credit-dev-gke"
+
+k8s_namespace = "millennium-credit-dev"
+
+create_gke_cluster = true
+
+# common_labels = { team = "platform" }

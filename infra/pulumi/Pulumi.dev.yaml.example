@@ -1,0 +1,5 @@
+# Copy to Pulumi.dev.yaml (or stack name you use) and set project.
+config:
+  gcp:project: my-gcp-project
+  credit-scoring:region: europe-central2
+  credit-scoring:clusterName: millennium-credit-gke

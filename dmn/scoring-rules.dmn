@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/" xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_scoring_rules" name="Scoring rules" namespace="http://credit-scoring-v2/camunda" exporter="Camunda Modeler" exporterVersion="5.45.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.6.0">
+  <decision id="scoring-rules" name="Scoring rules">
+    <decisionTable id="DecisionTable_scoring_rules" hitPolicy="FIRST">
+      <input id="Input_risk_score" label="Risk score (0-100)">
+        <inputExpression id="InputExpression_risk_score" typeRef="number">
+          <text>risk_score</text>
+        </inputExpression>
+      </input>
+      <output id="Output_riskTier" label="Risk tier" name="riskTier" typeRef="string" />
+      <rule id="Rule_low">
+        <inputEntry id="InputEntry_low">
+          <text>&gt;= 80</text>
+        </inputEntry>
+        <outputEntry id="OutputEntry_low">
+          <text>"LOW"</text>
+        </outputEntry>
+      </rule>
+      <rule id="Rule_medium">
+        <inputEntry id="InputEntry_medium">
+          <text>&gt;= 50</text>
+        </inputEntry>
+        <outputEntry id="OutputEntry_medium">
+          <text>"MEDIUM"</text>
+        </outputEntry>
+      </rule>
+      <rule id="Rule_high">
+        <inputEntry id="InputEntry_high">
+          <text>&lt; 50</text>
+        </inputEntry>
+        <outputEntry id="OutputEntry_high">
+          <text>"HIGH"</text>
+        </outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram id="DMNDiagram_scoring_rules">
+      <dmndi:DMNShape id="DMNShape_scoring_rules" dmnElementRef="scoring-rules">
+        <dc:Bounds height="80" width="180" x="160" y="100" />
+      </dmndi:DMNShape>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</definitions>

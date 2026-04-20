@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: credit-worker
+  namespace: millennium-credit
+  labels:
+    app.kubernetes.io/name: credit-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: credit-worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: credit-worker
+    spec:
+      containers:
+        - name: worker
+          image: europe-central2-docker.pkg.dev/PROJECT_ID/millennium-credit-gke-docker/credit-worker:latest
+          imagePullPolicy: Always
+          env:
+            - name: ZEEBE_ADDRESS
+              value: camunda-platform-zeebe-gateway.camunda.svc.cluster.local:26500
+            - name: BACKEND_URL
+              value: http://credit-backend.millennium-credit.svc.cluster.local:8000
+            - name: AI_TIMEOUT_S
+              value: "45"
+            - name: LOG_LEVEL
+              value: INFO
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: credit-worker
+  namespace: millennium-credit
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: credit-worker
+  minReplicas: 1
+  maxReplicas: 20
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60

@@ -1,0 +1,11 @@
+# Config Connector — Artifact Registry (Docker).
+# API: https://cloud.google.com/config-connector/docs/reference/artifactregistry/v1beta1/artifactregistryrepository
+apiVersion: artifactregistry.cnrm.cloud.google.com/v1beta1
+kind: ArtifactRegistryRepository
+metadata:
+  name: millennium-credit-gke-docker
+spec:
+  location: europe-central2
+  format: DOCKER
+  repositoryID: millennium-credit-gke-docker
+  description: Config Connector sample (align naming with Terraform/Pulumi)

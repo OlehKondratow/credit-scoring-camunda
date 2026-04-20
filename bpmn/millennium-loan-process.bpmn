@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_millennium_loan" targetNamespace="http://millennium/camunda" exporter="Credit-Scoring-V2" exporterVersion="1.0.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.6.0">
+  <bpmn:process id="millennium-loan-process" name="Millennium loan (AI + DMN)" isExecutable="true">
+    <bpmn:documentation>Start with variable **application** (JSON). Worker **ai-loan-analysis** sets **risk_score** and officer fields. DMN **scoring-rules** maps **risk_score** → **riskTier**.</bpmn:documentation>
+    <bpmn:startEvent id="Start" name="Start">
+      <bpmn:outgoing>Flow_to_ai</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_to_ai" sourceRef="Start" targetRef="Task_ai_loan" />
+    <bpmn:serviceTask id="Task_ai_loan" name="AI loan analysis">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="ai-loan-analysis" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_to_ai</bpmn:incoming>
+      <bpmn:outgoing>Flow_to_dmn</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_to_dmn" sourceRef="Task_ai_loan" targetRef="Task_dmn" />
+    <bpmn:businessRuleTask id="Task_dmn" name="DMN: scoring-rules">
+      <bpmn:extensionElements>
+        <zeebe:calledDecision decisionId="scoring-rules" bindingType="latest" resultVariable="riskTier" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_to_dmn</bpmn:incoming>
+      <bpmn:outgoing>Flow_to_end</bpmn:outgoing>
+    </bpmn:businessRuleTask>
+    <bpmn:sequenceFlow id="Flow_to_end" sourceRef="Task_dmn" targetRef="End" />
+    <bpmn:endEvent id="End" name="End">
+      <bpmn:incoming>Flow_to_end</bpmn:incoming>
+    </bpmn:endEvent>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_millennium">
+    <bpmndi:BPMNPlane id="BPMNPlane_millennium" bpmnElement="millennium-loan-process">
+      <bpmndi:BPMNShape id="Shape_start" bpmnElement="Start">
+        <dc:Bounds x="152" y="122" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_ai" bpmnElement="Task_ai_loan">
+        <dc:Bounds x="250" y="100" width="160" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_dmn" bpmnElement="Task_dmn">
+        <dc:Bounds x="470" y="100" width="160" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_end" bpmnElement="End">
+        <dc:Bounds x="700" y="122" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_1" bpmnElement="Flow_to_ai">
+        <di:waypoint x="188" y="140" />
+        <di:waypoint x="250" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_2" bpmnElement="Flow_to_dmn">
+        <di:waypoint x="410" y="140" />
+        <di:waypoint x="470" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_3" bpmnElement="Flow_to_end">
+        <di:waypoint x="630" y="140" />
+        <di:waypoint x="700" y="140" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

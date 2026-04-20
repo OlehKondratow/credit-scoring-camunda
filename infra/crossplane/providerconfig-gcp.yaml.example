@@ -1,0 +1,15 @@
+# Example only — Crossplane ProviderConfig for GCP (Upbound-style).
+# Rename to providerconfig-gcp.yaml and fill secretRef after installing the provider.
+# See: https://docs.crossplane.io/latest/concepts/providers/
+apiVersion: gcp.upbound.io/v1beta1
+kind: ProviderConfig
+metadata:
+  name: default
+spec:
+  projectID: YOUR_GCP_PROJECT_ID
+  credentials:
+    source: Secret
+    secretRef:
+      namespace: crossplane-system
+      name: gcp-creds
+      key: credentials.json
