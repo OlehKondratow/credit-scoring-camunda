@@ -1,0 +1,27 @@
+# Example Argo CD Application for Millennium workloads (k8s/millennium/).
+# 1. Set repoURL and targetRevision to your Git remote and branch.
+# 2. Configure a Repository credential in Argo CD if the repo is private.
+# 3. Ensure Secret millennium-env exists in the destination namespace (not committed).
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: millennium-credit
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/OlehKondratow/credit-scoring-camunda.git
+    targetRevision: millennium-credit-v2
+    path: k8s/millennium
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: millennium-credit
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      prune: true
+      selfHeal: true

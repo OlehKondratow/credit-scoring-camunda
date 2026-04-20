@@ -1,13 +1,14 @@
 # Pulumi (Python) — основной IaC
 
-Стек: **GCS** (бакет эмбеддингов + **raw PDF**), **BigQuery** dataset `millennium_analytics`, **Artifact Registry**, API **storage**, **bigquery**, **aiplatform**, **artifactregistry**. Экспорты: `vector_embeddings_bucket`, `raw_regulations_bucket`, `bigquery_dataset`, `artifact_registry_url`.
+Стек: **GCS** (бакет эмбеддингов + **raw PDF**), **BigQuery** dataset `millennium_analytics`, **Artifact Registry**, API **storage**, **bigquery**, **aiplatform**, **artifactregistry**. Экспорты: `gcp_project`, `gcp_region`, `cluster_name`, `artifact_repository_id`, `vector_embeddings_bucket`, `raw_regulations_bucket`, `bigquery_dataset`, `artifact_registry_url`.
 
 **Кто что делает:** стеки `dev` / `staging` / `prod` и роли — **`../ROLES.md`**.
 
 ## Требования
 
-- `pulumi` CLI
+- **`pulumi` CLI** (отдельно от `pip`): пакеты в `requirements.txt` — это только Python SDK для программы. CLI: [установка](https://www.pulumi.com/docs/install/) или `curl -fsSL https://get.pulumi.com | sh`. После установки добавьте в `PATH`: `export PATH="$HOME/.pulumi/bin:$PATH"` (иначе будет `pulumi: command not found`).
 - `gcloud auth application-default login` или `GOOGLE_APPLICATION_CREDENTIALS`
+- **State:** для командного стека — `pulumi login` (SaaS или self-hosted). Локально без аккаунта Pulumi Cloud: `pulumi login --local`. Если стек с шифрованием секретов, задайте `PULUMI_CONFIG_PASSPHRASE` (или `PULUMI_CONFIG_PASSPHRASE_FILE`) перед `stack init` / `preview` / `up`.
 
 ## Запуск
 

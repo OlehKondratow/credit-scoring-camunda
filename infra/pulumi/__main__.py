@@ -101,6 +101,10 @@ repo = gcp.artifactregistry.Repository(
     opts=pulumi.ResourceOptions(provider=provider, depends_on=[artifactregistry_api]),
 )
 
+pulumi.export("gcp_project", project_id)
+pulumi.export("gcp_region", region)
+pulumi.export("cluster_name", cluster_name)
+pulumi.export("artifact_repository_id", repo_id)
 pulumi.export("vector_embeddings_bucket", bucket.name)
 pulumi.export("raw_regulations_bucket", raw_pdfs_bucket.name)
 pulumi.export("bigquery_dataset", bq_dataset.dataset_id)

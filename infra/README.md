@@ -32,4 +32,6 @@ pulumi up
 | **`cdktf/`** | CDK for Terraform (пример) |
 | **`config-connector/`**, **`crossplane/`** | Примеры CR в K8s |
 
+Приложения в кластере (GitOps): **`../k8s/argocd/README.md`** — установка Argo CD и пример `Application` для `k8s/millennium/`.
+
 Регион по умолчанию: **`europe-central2`**.
