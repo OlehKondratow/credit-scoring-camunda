@@ -15,11 +15,11 @@
 | Что | Значение |
 |-----|-----------|
 | **Remote** | `git@github.com:OlehKondratow/credit-scoring-camunda.git` |
-| **Default branch на GitHub** | **`millennium-credit-v2`** — актуальный код Millennium (RAG, Pulumi, новый worker/UI). |
-| **Ветка `main`** | Сохранена **старая** линия (классический Camunda 8 credit scoring demo). **Не** затирать force-push без необходимости. |
+| **Default branch на GitHub** | Рекомендуется **`develop`** (интеграция); **`main`** — production. См. **[doc/git-workflow.md](git-workflow.md)**, **[doc/branch-notes.md](branch-notes.md)**. |
+| **Ветка `main`** | **Production** — защищённая линия для прода (см. github-setup). |
 | **Тег релиза** | **`v1.0.0`** — снимок нового контура (при необходимости обновлять осторожно на remote). |
 
-Клон по умолчанию тянет **`millennium-credit-v2`**. Старая история: `git fetch origin main && git switch main`.
+Клон по умолчанию после настройки тянет **`develop`**. Production: `git switch main`.
 
 **Ветки, `release/*`, теги `v*`, окружения:** см. **[doc/git-workflow.md](git-workflow.md)**.
 
@@ -102,7 +102,7 @@
 
 - **Camunda:** в этом репо — **Camunda 8 / Zeebe** + воркеры **Python** (`worker/`), scoring — **FastAPI + LangGraph** (`backend/`). Стек **Spring Boot + Camunda** относится к **self-managed Camunda Platform** (Operate/Tasklist/Zeebe), если вы его разворачиваете отдельно, а не к прикладному коду scoring.
 - **IaC:** в репозитории Pulumi на **Python** (`infra/pulumi/`), не TypeScript. VPC / мульти-пул GKE — **отдельный слой**, не дублируйте имена ресурсов с текущим `__main__.py` без импорта.
-- **Ветки:** default для Millennium — **`millennium-credit-v2`** (§2); схема `develop` / `release/*` / `main` ниже — **пример** пайплайна, согласуйте с фактическим Git.
+- **Ветки:** **`develop`** (интеграция), **`main`** (prod), `release/*`, `feature/*`, `hotfix/*` — см. §2 и **[doc/git-workflow.md](git-workflow.md)**.
 
 Это итоговый, детальный промпт для настройки enterprise-инфраструктуры: облако, Kubernetes, безопасность и процессы вокруг Camunda. Используйте для Pulumi/Terraform (отдельные стеки) или как инструкцию архитекторам.
 

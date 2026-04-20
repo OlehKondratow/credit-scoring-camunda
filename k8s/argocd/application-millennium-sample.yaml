@@ -14,7 +14,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/OlehKondratow/credit-scoring-camunda.git
-    targetRevision: millennium-credit-v2
+    targetRevision: develop
     path: k8s/millennium
   destination:
     server: https://kubernetes.default.svc

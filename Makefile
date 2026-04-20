@@ -2,7 +2,7 @@
 .PHONY: compose-up compose-down
 .PHONY: release-branch
 
-# Create release/X.Y.Z from millennium-credit-v2 (requires clean tree). Example: make release-branch VERSION=1.2.0
+# Create release/X.Y.Z from develop (requires clean tree). Example: make release-branch VERSION=1.2.0
 release-branch:
 	@test -n "$(VERSION)" || (echo "Usage: make release-branch VERSION=1.2.0" >&2; exit 1)
 	@scripts/create-release-branch.sh "$(VERSION)"

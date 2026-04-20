@@ -2,7 +2,7 @@
 
 ## Branches and releases
 
-See **[doc/git-workflow.md](doc/git-workflow.md)** (default branch **`millennium-credit-v2`**, tags **`v*`**). GitHub UI (protection, environments): **[doc/github-setup.md](doc/github-setup.md)**.
+See **[doc/git-workflow.md](doc/git-workflow.md)** (integration **`develop`**, production **`main`**, tags **`v*`**). Branch notes: **[doc/branch-notes.md](branch-notes.md)**. GitHub UI: **[doc/github-setup.md](doc/github-setup.md)**.
 
 Release branch helper: `./scripts/create-release-branch.sh 1.2.0` or `make release-branch VERSION=1.2.0`.
 

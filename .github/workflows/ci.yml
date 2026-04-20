@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches:
-      - millennium-credit-v2
+      - develop
       - main
       - "release/**"
       - "feature/**"
@@ -12,7 +12,7 @@ on:
       - "v*"
   pull_request:
     branches:
-      - millennium-credit-v2
+      - develop
       - main
       - "release/**"
 

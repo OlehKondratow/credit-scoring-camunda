@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Create release/X.Y.Z from up-to-date millennium-credit-v2 (see doc/git-workflow.md).
+# Create release/X.Y.Z from up-to-date develop (see doc/git-workflow.md).
 set -euo pipefail
 
 usage() {
@@ -11,7 +11,7 @@ usage() {
 [[ "${1:-}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || usage
 
 VERSION="$1"
-BASE="${RELEASE_BASE_BRANCH:-millennium-credit-v2}"
+BASE="${RELEASE_BASE_BRANCH:-develop}"
 REMOTE="${GIT_REMOTE:-origin}"
 
 git fetch "${REMOTE}"

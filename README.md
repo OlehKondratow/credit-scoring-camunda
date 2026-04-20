@@ -1,6 +1,6 @@
 # Millennium Bank — automated credit decision (RAG + Camunda 8)
 
-[![CI](https://github.com/OlehKondratow/credit-scoring-camunda/actions/workflows/ci.yml/badge.svg?branch=millennium-credit-v2)](https://github.com/OlehKondratow/credit-scoring-camunda/actions/workflows/ci.yml)
+[![CI](https://github.com/OlehKondratow/credit-scoring-camunda/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/OlehKondratow/credit-scoring-camunda/actions/workflows/ci.yml)
 
 **Vertex AI** (Vector Search + Gemini), **Camunda 8 / Zeebe**, **GKE (`europe-central2`)**, **Streamlit** dla analityków.
 
@@ -8,6 +8,7 @@
 |-----|---------|
 | [doc/prompt.md](doc/prompt.md) | Handoff, plan, enterprise blueprint |
 | [doc/git-workflow.md](doc/git-workflow.md) | Branches, `release/*`, tags |
+| [doc/branch-notes.md](doc/branch-notes.md) | Назначение веток, legacy `millennium-credit-v2` |
 | [doc/github-setup.md](doc/github-setup.md) | Branch protection, Environments (GitHub UI) |
 | [doc/naming.md](doc/naming.md) | Repo / branch / tag naming (avoid `Credit-Scoring-V2` as brand) |
 | [doc/cli-console.md](doc/cli-console.md) | CLI commands (Pulumi, `kubectl`, Docker) |

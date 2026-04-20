@@ -7,7 +7,7 @@
 | Сущность | Рекомендуемое имя |
 |----------|-------------------|
 | **Продукт / документация** | Millennium Bank AI Loan Officer / Millennium Credit |
-| **Default branch на GitHub** | **`millennium-credit-v2`** (не переименовывать в `Credit-Scoring-V2`) |
+| **Default branch на GitHub** | Рекомендуется **`develop`**; **`main`** — production (не использовать имя `Credit-Scoring-V2`) |
 | **Remote** | `git@github.com:OlehKondratow/credit-scoring-camunda.git` — имя **репозитория** на GitHub можно сменить в *Settings → General → Repository name* (например на `millennium-credit`); GitHub перенастроит URL, добавьте новый `remote url`. |
 | **Релизные теги** | **`v1.0.0`**, `v1.1.0`, … (SemVer) |
 | **Локальная папка клона** | Любое удобное, напр. `~/src/millennium-credit` — на код не влияет. |
@@ -21,7 +21,7 @@
   git push origin :refs/tags/Credit-Scoring-V2
   ```
 
-- Не делать **default branch** с именем `Credit-Scoring-V2` — держать **`millennium-credit-v2`**.
+- Не делать **default branch** с именем `Credit-Scoring-V2`. Legacy-ветка **`millennium-credit-v2`** удаляется после смены default — см. **[doc/branch-notes.md](branch-notes.md)**.
 
 ## GitHub: смена имени репозитория
 

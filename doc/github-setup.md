@@ -1,34 +1,97 @@
-# GitHub: branch protection и environments
+# GitHub Setup & Governance: Millennium Credit Enterprise
 
-Дополняет **[doc/git-workflow.md](git-workflow.md)** — то, что настраивается **в UI GitHub** (в репозитории нельзя зафиксировать protection в виде одного YAML).
+Этот документ описывает техническую реализацию 11 ролей и процессов управления доступом в репозитории **Millennium Credit** (ветки и legacy: **[doc/branch-notes.md](branch-notes.md)**).
 
-## 1. Default branch
+**Замена плейсхолдеров:** везде `@org/...` замените на реальное имя **GitHub Organization** (например `@MillenniumBank/platform-admin`).
 
-**Settings → General → Default branch:** **`millennium-credit-v2`**.
+**Ветки:** **`main`** — production, **`develop`** — интеграция. Рекомендуемая **default branch** на GitHub: **`develop`**. Поток Git: **[doc/git-workflow.md](git-workflow.md)**.
 
-## 2. Branch protection (рекомендуется)
+## 1. Структура Команд (Teams)
+Вместо настройки прав для каждого пользователя, мы используем группы. Один сотрудник может состоять в нескольких командах.
 
-**Settings → Rules → Rulesets** (или классические *Branch protection rules*) для ветки **`millennium-credit-v2`**:
+| GitHub Team | Роли (из ROLES.md) | Доступ к Repo |
+| :--- | :--- | :--- |
+| **`@org/platform-admin`** | DevOps, SRE, Cloud-Eng, Security | **Admin** |
+| **`@org/engineers`** | Dev-Developer, ML Engineer, Data-Engineer | **Write** |
+| **`@org/quality-gate`** | Dev-Tester, Ref-Tester, Prod-Tester, Release-Manager | **Read** (Write в `/tests`) |
+| **`@org/compliance`** | Security / Compliance (Auditors) | **Read** |
 
-- Требовать PR перед merge (no direct push), минимум **1 approval**.
-- Включить **required status checks**: job’ы **`backend`** и **`worker`** из workflow **CI** (после первого успешного прогона они появятся в списке).
-- Опционально: **Require conversation resolution**, **Require linear history**.
+---
 
-Для **`main`** (legacy): по желанию те же правила или только запрет force-push.
+## 2. Защита веток (Branch Protection & Rulesets)
 
-Для **`release/**`**: можно отдельное правило с теми же checks и запретом удаления ветки до merge.
+### Ветка: `main` (Production)
+* **Require a pull request before merging:** Включено.
+* **Required approvals:** Минимум 2 (один от `@org/platform-admin`, один от `@org/quality-gate`).
+* **Code Owners:** Обязательный аппрув от владельцев путей (см. раздел 3).
+* **Restrict pushes:** Только автоматизация (CI/CD Bot).
 
-## 3. Environments
+### Ветка: `develop` (Development / Integration)
+* **Require a pull request before merging:** Включено.
+* **Required approvals:** 1 (любой из `@org/engineers` или `@org/platform-admin`).
+* **Status Checks:** Обязательное прохождение CI тестов и линтеров.
 
-**Settings → Environments:** создать **`dev`**, **`staging`**, **`production`**.
+---
 
-- У **`production`** включить **Required reviewers** (роль Release Manager по `infra/ROLES.md`).
-- Секреты деплоя (GCP, kubeconfig) хранить на уровне environment, не в общих repo secrets без необходимости.
+## 3. Владение кодом (CODEOWNERS)
+Файл `.github/CODEOWNERS` жестко закрепляет зоны ответственности, исключая "тихие" правки.
 
-## 4. Секреты и OIDC
+```text
+# Инфраструктура и безопасность (IaC)
+/infra/                @org/platform-admin
 
-Предпочтительно **OIDC / Workload Identity Federation** для GitHub Actions вместо долгоживущих JSON-ключей — см. **`infra/ARCHITECTURE.md`**.
+# Данные и ML
+/ml-research/          @org/engineers @org/platform-admin
+/data-pipelines/       @org/engineers
 
-## 5. Теги
+# Бизнес-логика Camunda (BPMN/DMN)
+/backend/processes/    @org/engineers @org/quality-gate
 
-Удаление и создание тегов `v*` — только через дисциплину команды; опционально ограничить право создавать релизные теги ролью **maintain** / отдельной группой.
+# Документация
+/doc/                  @org/engineers @org/platform-admin
+```
+
+Пути вроде `/ml-research/` или `/backend/processes/` — целевые; подставьте фактические каталоги репозитория (например `bpmn/` для BPMN, `backend/` для API) или добавьте правила, когда появятся новые деревья.
+
+---
+
+## 4. Среды развертывания (Environments)
+Настраиваются в *Settings -> Environments*. Каждая среда имеет свои секреты (GCP Keys) и правила аппрува.
+
+### **Environment: `development`**
+* **Deployment branch:** `develop`.
+* **Reviewers:** Нет (автодеплой после мерджа).
+* **Role Map:** Доступно для `dev-developer`, `dev-tester`.
+
+### **Environment: `reference` (Staging)**
+* **Deployment branch:** `release/*`, `develop`.
+* **Reviewers:** `@org/quality-gate` (Роль: `ref-tester`).
+* **Purpose:** Регрессионное тестирование перед выходом в прод.
+
+### **Environment: `production`**
+* **Deployment branch:** `main`.
+* **Required Reviewers:**
+  * Один из `@org/quality-gate` (роль: `release-manager`).
+  * Один из `@org/platform-admin` (роль: SRE).
+* **Wait Timer:** Опционально 15 минут для возможности отмены (Safety Gate).
+
+
+
+---
+
+## 5. Обработка Инцидентов (Break-Glass)
+В случае критического сбоя (инцидента), когда стандартный цикл PR слишком медленный:
+1. **SRE** использует временный токен доступа (через GCP PAM).
+2. В GitHub используется временное "Emergency Override" (доступно только Admin), позволяющее мержить без аппрувов.
+3. **Security / Compliance** проводят пост-мортем аудит логов на основе созданного в этот момент тикета.
+
+---
+
+## 6. Настройка CI/CD (GitHub Actions)
+Для реализации разделения прав на уровне облака:
+* Секрет `${{ secrets.GCP_SA_DEV }}` доступен только в окружении `development`.
+* Секрет `${{ secrets.GCP_SA_PROD }}` доступен только в окружении `production` и защищен `Required Reviewers`.
+
+---
+
+**Итого:** 11 ролей сводятся к 4 группам в GitHub, которые управляют кодом через 3 барьера (Environments). Это обеспечивает прозрачность: мы всегда знаем, кто написал код (`engineers`), кто его проверил (`quality`), и кто разрешил выкатку в облако (`platform`).
