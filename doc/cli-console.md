@@ -11,16 +11,16 @@
 | **Job type Zeebe** | `ai-loan-analysis` |
 | **GKE в проекте (существующий кластер)** | `camunda-stable`, зона `europe-west3-c` |
 
-Путь к клону на диске в примерах: **`/data/projects/Credit-Scoring-V2`**.
+Путь к клону: **корень репозитория** (ниже — `$(git rev-parse --show-toplevel 2>/dev/null || echo "$PWD")` или ваша папка, напр. `~/src/millennium-credit`).
 
-Дополнительно: `doc/prompt.md`, `doc/ml-data-rag.md`, `infra/pulumi/README.md`.
+Дополнительно: `doc/prompt.md`, `doc/git-workflow.md`, `doc/naming.md`, `doc/ml-data-rag.md`, `infra/pulumi/README.md`.
 
 ---
 
 ## Локально: Docker Compose (Zeebe + backend + worker + UI)
 
 ```bash
-cd /data/projects/Credit-Scoring-V2
+cd "$(git rev-parse --show-toplevel)"
 docker compose up --build
 ```
 
@@ -33,7 +33,7 @@ docker compose up --build
 ## Локально: worker без Compose
 
 ```bash
-cd /data/projects/Credit-Scoring-V2/worker
+cd "$(git rev-parse --show-toplevel)/worker"
 pip install -r requirements.txt
 export PYTHONPATH="${PWD}"
 export ZEEBE_ADDRESS=127.0.0.1:26500
@@ -47,7 +47,7 @@ python -m app.main
 ## Pulumi (`infra/pulumi/`)
 
 ```bash
-cd /data/projects/Credit-Scoring-V2/infra/pulumi
+cd "$(git rev-parse --show-toplevel)/infra/pulumi"
 python3 -m venv venv && . venv/bin/activate
 pip install -r requirements.txt
 ```
@@ -102,7 +102,7 @@ kubectl get ns
 Секреты не коммитить: скопировать `secret-env.example.yaml` → `secret-env.yaml`, выставить `GOOGLE_CLOUD_PROJECT: "my-camunda8-project"` и токены.
 
 ```bash
-cd /data/projects/Credit-Scoring-V2
+cd "$(git rev-parse --show-toplevel)"
 kubectl apply -f k8s/millennium/namespace.yaml
 kubectl apply -f k8s/millennium/secret-env.yaml
 kubectl apply -f k8s/millennium/serviceaccount-backend.yaml
@@ -125,7 +125,7 @@ export REGION=europe-central2
 export PROJECT_ID=my-camunda8-project
 export REPO=millennium-credit-gke-docker
 
-docker build -t credit-backend:latest /data/projects/Credit-Scoring-V2/backend
+docker build -t credit-backend:latest "$(git rev-parse --show-toplevel)/backend"
 docker tag credit-backend:latest \
   ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}/credit-backend:latest
 gcloud auth configure-docker ${REGION}-docker.pkg.dev --project=${PROJECT_ID}

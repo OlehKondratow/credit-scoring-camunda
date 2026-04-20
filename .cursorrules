@@ -1,4 +1,4 @@
-# Credit-Scoring-V2 (Python / GCP / Camunda)
+# Millennium Credit — monorepo (Python / GCP / Camunda)
 
 - **Region:** default `europe-central2`; do not move workloads to non-EU regions without explicit intent.
 - **Stack:** FastAPI + LangGraph in `backend/`, PyZeebe in `worker/`, Streamlit in `ui/` — keep boundaries; no business logic only in UI.

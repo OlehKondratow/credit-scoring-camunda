@@ -12,6 +12,12 @@ venv/
 secret-env.yaml
 crash.log
 
+# Tests / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
 # CDKTF / Node
 node_modules/
 infra/cdktf/cdktf.out/

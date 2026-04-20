@@ -21,6 +21,8 @@
 
 Клон по умолчанию тянет **`millennium-credit-v2`**. Старая история: `git fetch origin main && git switch main`.
 
+**Ветки, `release/*`, теги `v*`, окружения:** см. **[doc/git-workflow.md](git-workflow.md)**.
+
 ---
 
 ## 3. Каталог `infra/` (источник правды по IaC)
@@ -90,4 +92,79 @@
 
 ---
 
-*Документ обновлён для переноса контекста в новый диалог; детали IaC — в `infra/`, RAG — в `doc/ml-data-rag.md`, шпаргалка CLI — в `doc/cli-console.md`.*
+*Документ обновлён для переноса контекста в новый диалог; детали IaC — в `infra/`, RAG — в `doc/ml-data-rag.md`, шпаргалка CLI — в `doc/cli-console.md`, Git — в `doc/git-workflow.md`, имена репо/тегов — в `doc/naming.md`.*
+
+---
+
+## 9. Enterprise blueprint (расширенная цель)
+
+Ниже — **мастер-спецификация** для enterprise-контура (IAM, GitOps, сеть, GKE). Часть пунктов **ещё не реализована** в коде репозитория; сверяйте с §1–8 и с `infra/ROLES.md`. Типичные отличия от текущего кода:
+
+- **Camunda:** в этом репо — **Camunda 8 / Zeebe** + воркеры **Python** (`worker/`), scoring — **FastAPI + LangGraph** (`backend/`). Стек **Spring Boot + Camunda** относится к **self-managed Camunda Platform** (Operate/Tasklist/Zeebe), если вы его разворачиваете отдельно, а не к прикладному коду scoring.
+- **IaC:** в репозитории Pulumi на **Python** (`infra/pulumi/`), не TypeScript. VPC / мульти-пул GKE — **отдельный слой**, не дублируйте имена ресурсов с текущим `__main__.py` без импорта.
+- **Ветки:** default для Millennium — **`millennium-credit-v2`** (§2); схема `develop` / `release/*` / `main` ниже — **пример** пайплайна, согласуйте с фактическим Git.
+
+Это итоговый, детальный промпт для настройки enterprise-инфраструктуры: облако, Kubernetes, безопасность и процессы вокруг Camunda. Используйте для Pulumi/Terraform (отдельные стеки) или как инструкцию архитекторам.
+
+### 9.1. Context & Governance
+**Project:** Millennium Credit Scoring (Camunda-based).
+**Stack:** GCP, GKE, Pulumi (IaC), Camunda 8 (Zeebe + при необходимости self-managed Platform на Java), Google Identity (SSO) — по политике организации.
+**Principle:** Least Privilege, GitOps-only changes, Zero Trust for Production.
+
+### 9.2. Role & Access Matrix (IAM & RBAC)
+Настрой инфраструктуру так, чтобы уровни доступа соответствовали следующим спецификациям:
+
+### **A. Infrastructure & Management**
+* **DevOps / SRE / Cloud-Eng:** Полный доступ к IaC (Pulumi), создание кластеров, управление VPC и мониторингом. В GKE — `cluster-admin`.
+* **Release-Manager:** Единственная роль с правом апрува GitHub Environments для деплоя в `prod`. В облаке — `Viewer`.
+* **Security / Compliance:** Доступ `Security Reviewer` в GCP. В GKE — `view` ко всем неймспейсам. Настройка **Gatekeeper/OPA** политик (запрет privileged containers).
+
+### **B. Development & Quality Assurance**
+* **Dev-Developer:** `Admin` в неймспейсе `dev`. Возможность деплоить, удалять поды, смотреть логи, делать `port-forward`.
+* **Dev-Tester:** `View` доступ в `dev`. Доступ к Swagger UI и Camunda Cockpit (Read-only).
+* **Ref-Tester (Staging):** `Edit` в неймспейсе `ref` (Staging). Право перезапускать сервисы для тестов регресса.
+
+### **C. Production & Business**
+* **Prod-Tester (UAT):** Право создавать процессы в Camunda через API/UI в `prod`, но без доступа к инфраструктуре K8s.
+* **Prod-User (Credit Officer):** Доступ только к Camunda Tasklist (Task-Worker).
+* **Break-glass:** Временный доступ `Owner` через **GCP PAM** (Privileged Access Manager) с обязательным указанием ID инцидента.
+
+### **D. Data & AI Layers**
+* **Data-Engineer:** `BigQuery Admin` и `Storage Admin`. Доступ к пайплайнам миграции данных из SQL в Data Lake.
+* **ML-Engineer:** Доступ к **Vertex AI**, **Vector Search** и бакетам с эмбеддингами. Право деплоить модели как Sidecar-контейнеры.
+
+### 9.3. Deployment Lifecycle (GitOps)
+Реализуй Pipeline в GitHub Actions со следующей логикой (аутентификацию в GCP по возможности через **OIDC / Workload Identity Federation**, а не долгоживущие JSON-ключи — см. `infra/ARCHITECTURE.md`):
+
+1.  **Branch `develop` → env `DEV`:**
+    * Trigger: Push.
+    * Action: `pulumi up --stack dev`.
+2.  **Branch `release/*` → env `REF` / staging:**
+    * Trigger: merge PR.
+    * Action: `pulumi up --stack ref` (или `staging`), регрессионные тесты.
+3.  **Branch `main` → env `PROD`:**
+    * Trigger: manual approval (**Release-Manager**).
+    * Policy: drift detection / запрет обхода Git для прод-изменений.
+
+
+
+### 9.4. Technical Requirements (IaC Task)
+Сгенерируй код Pulumi (в этом репозитории канон — **Python**; TypeScript допустим как отдельный стек), который создаёт:
+1.  **Network:** VPC с 3 подсетями (dev, ref, prod) и Private Google Access.
+2.  **GKE:** Региональный кластер с 3 пулами узлов:
+    * `pool-dev`: Spot-инстансы (экономия).
+    * `pool-prod`: Стандартные инстансы с включенным Shielded GKE.
+3.  **Namespaces:** например `credit-dev`, `credit-ref`, `credit-prod` (в репо сейчас пример — `millennium-credit`; согласуйте имена).
+4.  **RBAC Bindings:** Маппинг Google-групп (напр. `devs@company.com`) на роли внутри неймспейсов.
+5.  **Secrets:** Интеграция с **GCP Secret Manager** через `ExternalSecrets` Operator.
+
+### 9.5. Application Layer (Camunda Platform & Security)
+Для **self-managed Camunda 8 Platform** (Operate / Tasklist / Zeebe и др.) типично Java/Spring; настройте по политике организации:
+
+* **Auth:** Google OAuth2 / OIDC (SSO).
+* **Database:** Cloud SQL (PostgreSQL) с **IAM Auth** или секретами из Secret Manager (без паролей в git).
+* **Audit:** логи и история процессов — в **Cloud Logging** / **BigQuery** для аудита.
+
+Прикладной scoring в **этом** репозитории — **не** Spring Boot, а **FastAPI** (`backend/`) и воркеры **Python** (`worker/`); связка с Camunda через Zeebe.
+
+**Результат (цель blueprint):** архитектура с разделением обязанностей (SoD) и политиками, блокирующими несанкционированные изменения.
