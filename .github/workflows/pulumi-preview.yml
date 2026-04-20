@@ -1,0 +1,58 @@
+# Pulumi preview against GCP using Workload Identity Federation (no JSON keys).
+# Prerequisites: WIF + SA created (optional Pulumi module workload_identity_github.py),
+# then add repo secrets: GCP_WORKLOAD_IDENTITY_PROVIDER, GCP_GITHUB_ACTIONS_SA_EMAIL.
+#
+# Provider value format: projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/POOL_ID/providers/PROVIDER_ID
+
+name: Pulumi Preview (infra)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - develop
+    paths:
+      - "infra/pulumi/**"
+      - ".github/workflows/pulumi-preview.yml"
+
+concurrency:
+  group: pulumi-preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    defaults:
+      run:
+        working-directory: infra/pulumi
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_GITHUB_ACTIONS_SA_EMAIL }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Install Pulumi CLI
+        uses: pulumi/setup-pulumi@v3
+        with:
+          pulumi-version: "3.140.0"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Pulumi preview (stack dev)
+        env:
+          PULUMI_CONFIG_PASSPHRASE: ${{ secrets.PULUMI_CONFIG_PASSPHRASE }}
+        run: |
+          # Stack must exist; backend: Pulumi Cloud (set PULUMI_ACCESS_TOKEN) or gs://… after pulumi login --cloud-url gs://...
+          pulumi stack select dev
+          pulumi preview --non-interactive

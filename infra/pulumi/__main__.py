@@ -1,11 +1,37 @@
 """
 Pulumi program: GCS (embeddings + raw PDFs), BigQuery analytics, Artifact Registry, key APIs.
 Configure: pulumi config set gcp:project PROJECT
+
+Optional (enterprise CI): GitHub OIDC → GCP — см. workload_identity_github.py и infra/pulumi/README.md.
 """
+
+import os
+import subprocess
 
 import pulumi
 import pulumi_gcp as gcp
 import pulumi_random as random
+
+from workload_identity_github import provision as provision_github_wif
+
+
+def _gcp_provider_args(project: str, reg: str) -> dict:
+    """
+    If Application Default Credentials are stale (invalid_grant), use a fresh user token:
+      PULUMI_USE_GCLOUD_USER_TOKEN=1 pulumi preview
+    CI should use OIDC / SA JSON via normal ADC, not this.
+    """
+    args = {"project": project, "region": reg}
+    if os.environ.get("PULUMI_USE_GCLOUD_USER_TOKEN", "").lower() in ("1", "true", "yes"):
+        tok = subprocess.run(
+            ["gcloud", "auth", "print-access-token"],
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        args["access_token"] = pulumi.Output.secret(tok)
+    return args
+
 
 gcp_cfg = pulumi.Config("gcp")
 project_id = gcp_cfg.require("project")
@@ -16,11 +42,7 @@ region = cfg.get("region") or "europe-central2"
 cluster_name = cfg.get("clusterName") or "millennium-credit-gke"
 repo_id = cluster_name.replace("_", "-") + "-docker"
 
-provider = gcp.Provider(
-    "gcp",
-    project=project_id,
-    region=region,
-)
+provider = gcp.Provider("gcp", **_gcp_provider_args(project_id, region))
 
 suffix = random.RandomString(
     "bucket_suffix",
@@ -109,3 +131,5 @@ pulumi.export("vector_embeddings_bucket", bucket.name)
 pulumi.export("raw_regulations_bucket", raw_pdfs_bucket.name)
 pulumi.export("bigquery_dataset", bq_dataset.dataset_id)
 pulumi.export("artifact_registry_url", pulumi.Output.concat(region, "-docker.pkg.dev/", project_id, "/", repo_id))
+
+provision_github_wif(provider=provider, project_id=project_id, region=region)
