@@ -103,7 +103,7 @@
 1. В **GitHub Organization** создайте **Teams** по **[doc/github-setup.md](../doc/github-setup.md)** (обычно: `platform-admin`, `engineers`, `quality-gate`, `compliance`).
 2. Назначьте членов: вручную или через **SCIM** из IdP (если настроено).
 3. На репозитории `credit-scoring-camunda`: **Team → роль** (Read / Write / Maintain / Admin) по матрице в github-setup.
-4. Включите **branch protection** на `main` и `develop`, заполните **CODEOWNERS** (пути `/infra/` → platform).
+4. Включите **branch protection** на `main` и `develop`, заполните **CODEOWNERS** (пути `/infra/` → platform). Матрица **11 ролей** и **6 учёток** GitHub для ревью: **[doc/github-codeowners-matrix.md](../doc/github-codeowners-matrix.md)**.
 5. Создайте **Environments** `development`, `reference` (или `staging`), `production` с **Required reviewers** на production.
 
 ### Этап 5. CI/CD: OIDC / Workload Identity Federation

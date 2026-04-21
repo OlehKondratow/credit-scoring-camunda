@@ -1,37 +1,53 @@
-# CODEOWNERS for https://github.com/kwazar-0/credit-scoring-camunda
-# GitHub applies the last matching pattern per path — order matters.
-# Upstream reference: https://github.com/OlehKondratow/credit-scoring-camunda
+# CODEOWNERS — https://github.com/kwazar-0/credit-scoring-camunda
+# Upstream: https://github.com/OlehKondratow/credit-scoring-camunda
 #
-# Role split (fork workflow):
-#   @kwazar-0          — fork owner: platform, IaC, K8s, automation
-#   @OlehKondratow     — application: API, workers, UI, data, BPMN/DMN
-#   @tempb59-commits   — CI/workflows co-review (with @kwazar-0)
+# 11 логических ролей (infra/ROLES.md) маппятся на 6 GitHub-учёток; см. doc/github-codeowners-matrix.md
+# Порядок строк важен: для пути действует последнее подходящее правило.
+#
+# U1 @kwazar-0          — devops/sre, владелец форка, release/infra
+# U2 @OlehKondratow     — dev-developer, ML Engineer
+# U3 @tempb59-commits   — dev-tester, ref-tester (процессы + CI)
+# U4 @geraltwilkbialy-cloud — security / compliance (политики)
+# U5 @olehkondracki-prog — data-engineer, co-dev
+# U6 @tempb418-ux      — co-platform (CI + infra второй голос)
 
-# Default owner for paths without a more specific rule below
-* @kwazar-0
+# База: два ключевых владельца для всего, что не переопределено ниже
+* @kwazar-0 @OlehKondratow
 
-# Top-level markdown & policy (shared visibility)
-/*.md @kwazar-0 @OlehKondratow
-/LICENSE @kwazar-0 @OlehKondratow
-/CITATION.cff @kwazar-0 @OlehKondratow
-/Makefile @kwazar-0
-/docker-compose.yml @kwazar-0
+# Политики и безопасность (роль 7 + U1)
+/SECURITY.md @geraltwilkbialy-cloud @kwazar-0
+/CODE_OF_CONDUCT.md @geraltwilkbialy-cloud @OlehKondratow @kwazar-0
+/SUPPORT.md @OlehKondratow @kwazar-0
+/GOVERNANCE.md @OlehKondratow @kwazar-0
 
-# Application stack
-/backend/ @OlehKondratow
-/worker/ @OlehKondratow
-/ui/ @OlehKondratow
-/data/ @OlehKondratow
-/bpmn/ @OlehKondratow
-/dmn/ @OlehKondratow
+# Корневая документация и метаданные
+/*.md @kwazar-0 @OlehKondratow @geraltwilkbialy-cloud
+/LICENSE @OlehKondratow @kwazar-0
+/CITATION.cff @OlehKondratow @kwazar-0
+/Makefile @kwazar-0 @tempb418-ux
+/docker-compose.yml @kwazar-0 @tempb418-ux
 
-# Platform, delivery, Kubernetes
-/infra/ @kwazar-0
-/k8s/ @kwazar-0
+# Платформа (роли 1, 9)
+/infra/ @kwazar-0 @tempb418-ux
+/k8s/ @kwazar-0 @tempb418-ux
+
+# Приложение (роли 2, 11)
+/backend/ @OlehKondratow @olehkondracki-prog
+/worker/ @OlehKondratow @olehkondracki-prog
+/ui/ @OlehKondratow @olehkondracki-prog
+
+# Данные и ingest (роли 10, 11)
+/data/ @olehkondracki-prog @OlehKondratow
+
+# Процессы Camunda (роли 3, 4 — QA + разработка)
+/bpmn/ @OlehKondratow @tempb59-commits
+/dmn/ @OlehKondratow @tempb59-commits
+
+# Скрипты релиза / вспомогательные (роль 9)
 /scripts/ @kwazar-0 @OlehKondratow
 
-# GitHub automation & templates
-/.github/ @kwazar-0 @tempb59-commits
+# Автоматизация GitHub (роли 1, 3)
+/.github/ @kwazar-0 @tempb59-commits @tempb418-ux
 
-# Documentation (product + ops handoff)
-/doc/ @OlehKondratow @kwazar-0
+# Продуктовая и операционная документация
+/doc/ @OlehKondratow @kwazar-0 @geraltwilkbialy-cloud
