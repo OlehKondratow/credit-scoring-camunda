@@ -23,6 +23,9 @@ node_modules/
 infra/cdktf/cdktf.out/
 infra/cdktf/.gen/
 
+# Local identity / fork notes (may contain personal email)
+doc/accounts.local.md
+
 # Pulumi
 infra/pulumi/venv/
 infra/pulumi/.venv/
