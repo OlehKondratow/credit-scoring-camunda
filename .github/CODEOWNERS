@@ -1,3 +1,37 @@
-# Optional: uncomment and set team or users who must review changes.
-# * @your-org/platform-team
-# /infra/ @your-org/devops
+# CODEOWNERS for https://github.com/kwazar-0/credit-scoring-camunda
+# GitHub applies the last matching pattern per path — order matters.
+# Upstream reference: https://github.com/OlehKondratow/credit-scoring-camunda
+#
+# Role split (fork workflow):
+#   @kwazar-0          — fork owner: platform, IaC, K8s, automation
+#   @OlehKondratow     — application: API, workers, UI, data, BPMN/DMN
+#   @tempb59-commits   — CI/workflows co-review (with @kwazar-0)
+
+# Default owner for paths without a more specific rule below
+* @kwazar-0
+
+# Top-level markdown & policy (shared visibility)
+/*.md @kwazar-0 @OlehKondratow
+/LICENSE @kwazar-0 @OlehKondratow
+/CITATION.cff @kwazar-0 @OlehKondratow
+/Makefile @kwazar-0
+/docker-compose.yml @kwazar-0
+
+# Application stack
+/backend/ @OlehKondratow
+/worker/ @OlehKondratow
+/ui/ @OlehKondratow
+/data/ @OlehKondratow
+/bpmn/ @OlehKondratow
+/dmn/ @OlehKondratow
+
+# Platform, delivery, Kubernetes
+/infra/ @kwazar-0
+/k8s/ @kwazar-0
+/scripts/ @kwazar-0 @OlehKondratow
+
+# GitHub automation & templates
+/.github/ @kwazar-0 @tempb59-commits
+
+# Documentation (product + ops handoff)
+/doc/ @OlehKondratow @kwazar-0
