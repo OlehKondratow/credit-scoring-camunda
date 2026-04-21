@@ -1,6 +1,7 @@
 # Pulumi preview against GCP using Workload Identity Federation (no JSON keys).
 # Prerequisites: WIF + SA created (optional Pulumi module workload_identity_github.py),
-# then add repo secrets: GCP_WORKLOAD_IDENTITY_PROVIDER, GCP_GITHUB_ACTIONS_SA_EMAIL.
+# Environment GCP_WORKLOAD secrets: GCP_WORKLOAD_IDENTITY_PROVIDER, GCP_GITHUB_ACTIONS_SA_EMAIL,
+# PULUMI_CONFIG_PASSPHRASE (stack config decryption), PULUMI_ACCESS_TOKEN (Pulumi Cloud backend).
 #
 # Provider value format: projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/POOL_ID/providers/PROVIDER_ID
 
@@ -54,8 +55,8 @@ jobs:
 
       - name: Pulumi preview (stack dev)
         env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
           PULUMI_CONFIG_PASSPHRASE: ${{ secrets.PULUMI_CONFIG_PASSPHRASE }}
         run: |
-          # Stack must exist; backend: Pulumi Cloud (set PULUMI_ACCESS_TOKEN) or gs://… after pulumi login --cloud-url gs://...
           pulumi stack select dev
           pulumi preview --non-interactive
