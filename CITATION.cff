@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+title: "Millennium Bank — automated credit decision (RAG + Camunda 8)"
+message: >-
+  If you use this software in research or publications, please cite it using
+  the metadata in this file.
+abstract: >-
+  Automated credit-decision workflows using FastAPI and LangGraph, Camunda 8 / Zeebe workers,
+  Streamlit, and Google Cloud (Vertex AI, GKE), with Pulumi-first infrastructure.
+authors:
+  - family-names: Kondratow
+    given-names: Oleh
+repository-code: "https://github.com/OlehKondratow/credit-scoring-camunda"
+license: MIT
+license-url: "https://github.com/OlehKondratow/credit-scoring-camunda/blob/main/LICENSE"
+keywords:
+  - credit-scoring
+  - camunda
+  - bpmn
+  - zeebe
+  - vertex-ai
+  - langgraph
+  - fastapi
+  - gcp
+  - pulumi
+type: software
