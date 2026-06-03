@@ -44,7 +44,7 @@ jobs:
 
       # Official install path (pulumi/setup-pulumi has no v3 tag — use actions repo).
       - name: Install Pulumi CLI
-        uses: pulumi/actions@v5
+        uses: pulumi/actions@v7
         with:
           pulumi-version: "3.140.0"
 
